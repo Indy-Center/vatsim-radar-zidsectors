@@ -1,5 +1,10 @@
 # Changelog
 
+# [1.2.4-6.4]
+
+- Fixed coordinate format `6800E` not parsing correctly
+- Fixed some terminal waypoints replacing enroute waypoints if they have same identifier and region
+
 # [1.2.4-6.3]
 
 - Fixed airways merging
