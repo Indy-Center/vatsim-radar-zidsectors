@@ -324,6 +324,19 @@ export const duplicatingSettings = [
         },
     },
     /**
+     * @description HCF Center and TRACONs
+     * @author 1897191
+     */
+    {
+        regex: /^HNL_(\d+_)?CTR$/,
+        mapping: {
+            HNL: 'HNL_H_APP',
+            NGF: 'NGF_APP',
+            OGG: 'OGG_S_APP',
+            ITO: 'ITO_APP',
+        },
+    },
+     /**
     * @description ZME Center and TRACONs
     * @author 1098471
     */
