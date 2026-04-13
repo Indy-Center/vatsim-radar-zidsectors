@@ -351,26 +351,26 @@ export const duplicatingSettings = [
             NMM: 'NMM_APP',
         },
     },
-/**
+    /**
      * @description MMEX ACC and TMA sectors
      * @author 1523823
      */
     {
         regex: /^MMEX(\_\w{0,3})?\_CTR$/,
         mapping: {
-            'MMMX': 'MMMX_APP',
-            'MMGL': 'MMGL_APP',
-            'MMPR': 'MMPR_APP',
-            'MMLO': 'MMLO_APP',
-            'MMMM': 'MMMM_APP',
-            'MMOX': 'MMOX_APP',
-            'MMVR': 'MMVR_APP',
-            'MMTM': 'MMTM_APP',
-            'MMSP': 'MMSP_APP',
-            'MMQT': 'MMQT_APP',
-            'MMZH': 'MMZH_APP',
-            'MMZO': 'MMZO_APP',
-            'MMAA': 'MMAA_APP',
+            MMMX: 'MMMX_APP',
+            MMGL: 'MMGL_APP',
+            MMPR: 'MMPR_APP',
+            MMLO: 'MMLO_APP',
+            MMMM: 'MMMM_APP',
+            MMOX: 'MMOX_APP',
+            MMVR: 'MMVR_APP',
+            MMTM: 'MMTM_APP',
+            MMSP: 'MMSP_APP',
+            MMQT: 'MMQT_APP',
+            MMZH: 'MMZH_APP',
+            MMZO: 'MMZO_APP',
+            MMAA: 'MMAA_APP',
         },
     },
     /**
@@ -391,7 +391,7 @@ export const duplicatingSettings = [
     * @author 1098471
     */
     {
-        regex: /(?i)\b(?:MEM|BNA|LIT|FSM|JAN|HSV|HOP|NMM|CBM)\b/,
+        regex: /\b(?:MEM|BNA|LIT|FSM|JAN|HSV|HOP|NMM|CBM)\b/i,
         mapping: {
             MEM: 'MEM_E_APP',
             BNA: 'BNA_X_DEP',
