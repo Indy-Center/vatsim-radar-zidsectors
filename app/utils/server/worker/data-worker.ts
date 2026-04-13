@@ -472,7 +472,6 @@ defineCronJob('* * * * * *', async () => {
                         const atisText = controller.text_atis.join(' ');
 
                         for (const [areaText, targetCallsign] of Object.entries(setting.mapping)) {
-                            // @ts-expect-error No type for now
                             const areaTextRegExp = new RegExp(`\\b${ RegExp.escape(areaText) }\\b`, 'i');
 
                             if (areaTextRegExp.test(atisText) && controller.callsign !== targetCallsign) {
