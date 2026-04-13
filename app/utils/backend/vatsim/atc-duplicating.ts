@@ -323,7 +323,7 @@ export const duplicatingSettings = [
             'MMAA': 'MMAA_APP',
         },
     },
-     /**
+    /**
     * @description ZME Center and TRACONs
     * @author 1098471
     */
