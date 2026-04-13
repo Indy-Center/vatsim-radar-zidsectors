@@ -8,6 +8,7 @@
 import type { Map } from 'ol';
 import type { WatchStopHandle } from 'vue';
 import type LayerGroup from 'ol/layer/Group';
+import { updateCachedProcedures } from '~/composables/navigraph';
 
 const route = useRoute();
 
@@ -41,4 +42,28 @@ if (import.meta.server) {
         return true;
     });
 }
+
+async function receiveMessage(event: MessageEvent) {
+    const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+
+    if (data && 'vatsimToken' in event.data) {
+        await $fetch('/api/auth/vatsim/token', {
+            method: 'POST',
+            body: {
+                token: event.data.vatsimToken,
+            },
+        });
+        location.reload();
+    }
+}
+
+onMounted(() => {
+    window.addEventListener('message', receiveMessage);
+
+    window.parent.postMessage({ status: 'ready' }, '*');
+});
+
+onBeforeUnmount(() => {
+    window.removeEventListener('message', receiveMessage);
+});
 </script>
