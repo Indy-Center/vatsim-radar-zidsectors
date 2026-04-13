@@ -236,6 +236,10 @@ Known Issues:
 - Implement ZME TRACON Duplication
 - Add MMEX ACC TMA duplicating for VATMEX
 - Add HCF Center and TRACONs to ATC duplication
+- Duplicated controllers are now properly filtered from airport if a real controller is sitting there
+- If one position is duplicated by both CTR and APP controllers, CTR will no longer show up
+- Fixed duplicated color when custom setting is used
+- Duplicating RegExp will no longer trigger by random words in ATIS
 
 # [1.2.4-6.3]
 
