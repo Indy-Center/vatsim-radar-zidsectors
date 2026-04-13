@@ -45,11 +45,11 @@ if (import.meta.server) {
 async function receiveMessage(event: MessageEvent) {
     const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
 
-    if (data && 'vatsimToken' in event.data) {
+    if (data && 'vatsimToken' in data) {
         await $fetch('/api/auth/vatsim/token', {
             method: 'POST',
             body: {
-                token: event.data.vatsimToken,
+                token: data.vatsimToken,
             },
         });
         location.reload();
