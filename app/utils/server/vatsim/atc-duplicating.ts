@@ -351,4 +351,57 @@ export const duplicatingSettings = [
             NMM: 'NMM_APP',
         },
     },
+/**
+     * @description MMEX ACC and TMA sectors
+     * @author 1523823
+     */
+    {
+        regex: /^MMEX(\_\w{0,3})?\_CTR$/,
+        mapping: {
+            'MMMX': 'MMMX_APP',
+            'MMGL': 'MMGL_APP',
+            'MMPR': 'MMPR_APP',
+            'MMLO': 'MMLO_APP',
+            'MMMM': 'MMMM_APP',
+            'MMOX': 'MMOX_APP',
+            'MMVR': 'MMVR_APP',
+            'MMTM': 'MMTM_APP',
+            'MMSP': 'MMSP_APP',
+            'MMQT': 'MMQT_APP',
+            'MMZH': 'MMZH_APP',
+            'MMZO': 'MMZO_APP',
+            'MMAA': 'MMAA_APP',
+        },
+    },
+    /**
+     * @description HCF Center and TRACONs
+     * @author 1897191
+     */
+    {
+        regex: /^HNL_(\d+_)?CTR$/,
+        mapping: {
+            HNL: 'HNL_H_APP',
+            NGF: 'NGF_APP',
+            OGG: 'OGG_S_APP',
+            ITO: 'ITO_APP',
+        },
+    },
+    /**
+    * @description ZME Center and TRACONs
+    * @author 1098471
+    */
+    {
+        regex: /(?i)\b(?:MEM|BNA|LIT|FSM|JAN|HSV|HOP|NMM|CBM)\b/,
+        mapping: {
+            MEM: 'MEM_E_APP',
+            BNA: 'BNA_X_DEP',
+            LIT: 'LIT_W_APP',
+            FSM: 'FSM_S_APP',
+            JAN: 'JAN_W_APP',
+            HSV: 'HSV_E_APP',
+            HOP: 'HOP_S_APP',
+            CBM: 'CBM_E_APP',
+            NMM: 'NMM_APP',
+        },
+    },
 ] satisfies DuplicatingSetting[];
