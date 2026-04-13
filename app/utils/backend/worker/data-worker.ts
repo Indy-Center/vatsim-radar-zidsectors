@@ -469,11 +469,13 @@ defineCronJob('* * * * * *', async () => {
                 for (const setting of duplicatingSettings) {
                     if (controller.text_atis?.length && setting.regex.test(controller.callsign)) {
                         match = true;
+                        const atisText = controller.text_atis.join(' ');
+
                         for (const [areaText, targetCallsign] of Object.entries(setting.mapping)) {
                             // @ts-expect-error No type for now
                             const areaTextRegExp = new RegExp(`\\b${ RegExp.escape(areaText) }\\b`, 'i');
 
-                            if (areaTextRegExp.test(areaText) && controller.callsign !== targetCallsign) {
+                            if (areaTextRegExp.test(atisText) && controller.callsign !== targetCallsign) {
                                 const duplicated = {
                                     ...controller,
                                     callsign: targetCallsign,
