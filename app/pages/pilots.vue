@@ -14,36 +14,36 @@
                 I'm a supervisor
             </ui-toggle>
 
-            <common-toggle
+            <ui-toggle
                 v-if="store.user?.isSup"
                 v-model="militaryFilter"
                 align-left
             >
                 Military filter
-            </common-toggle>
+            </ui-toggle>
 
             <div
                 v-if="store.user?.isSup"
                 class="pilots_settings"
             >
-                <common-input-text v-model="militaryRegex">
+                <ui-input-text v-model="militaryRegex">
                     Remarks RegEx (i)
-                </common-input-text>
-                <common-input-number v-model="militaryGS">
+                </ui-input-text>
+                <ui-input-number v-model="militaryGS">
                     Ground speed is more than and not CONC
-                </common-input-number>
-                <common-input-text
+                </ui-input-number>
+                <ui-input-text
                     v-model="militaryAircraft"
                     placeholder="For example, su21|mi8"
                 >
                     Military aircraft RegEx (i)
-                </common-input-text>
-                <common-button @click="reset()">
+                </ui-input-text>
+                <ui-button @click="reset()">
                     Reset to defaults
-                </common-button>
+                </ui-button>
             </div>
 
-            <common-table
+            <ui-table
                 :data="getPilots"
                 :headers="[
                     { key: 'cid', name: 'CID', width: 80, sort: true },
@@ -74,8 +74,8 @@
                         {{ item.flight_plan?.remarks }}
                     </div>
                 </template>
-            </common-table>
-        </common-page-block>
+            </ui-table>
+        </ui-page-container>
     </div>
 </template>
 
@@ -84,6 +84,10 @@ import UiPageContainer from '~/components/ui/UiPageContainer.vue';
 import type { VatsimExtendedPilot } from '~/types/data/vatsim';
 import { parseEncoding } from '~/utils/data';
 import UiToggle from '~/components/ui/inputs/UiToggle.vue';
+import UiInputText from '~/components/ui/inputs/UiInputText.vue';
+import UiInputNumber from '~/components/ui/inputs/UiInputNumber.vue';
+import UiTable from '~/components/ui/data/UiTable.vue';
+import UiButton from '~/components/ui/buttons/UiButton.vue';
 
 const { data: pilots, refresh } = useAsyncData('sup-pilots', () => $fetch<VatsimExtendedPilot[]>('/api/data/vatsim/data/pilots'));
 
