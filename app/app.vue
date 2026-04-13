@@ -8,7 +8,6 @@
 import type { Map } from 'ol';
 import type { WatchStopHandle } from 'vue';
 import type LayerGroup from 'ol/layer/Group';
-import { updateCachedProcedures } from '~/composables/navigraph';
 
 const route = useRoute();
 
