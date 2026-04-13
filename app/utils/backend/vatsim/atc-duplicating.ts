@@ -65,9 +65,9 @@ export const duplicatingSettings = [
         },
     },
     /**
-    * @description ZLA/SCT/L30 Area/TRACON
-    * @author 845421
-    */
+     * @description ZLA/SCT/L30 Area/TRACON
+     * @author 845421
+     */
     {
         regex: /^(SCT|LAX|BUR|ONT|SNA|PSP|SAN|LAS|ZLA)(_\w{0,3})?_(APP|DEP|CTR|TMU)$/,
         mapping: {
@@ -90,9 +90,9 @@ export const duplicatingSettings = [
         },
     },
     /**
-    * @description ZNY/N90 Center and TRACONs
-    * @author 1590802 and 1084329
-    */
+     * @description ZNY/N90 Center and TRACONs
+     * @author 1590802 and 1084329
+     */
     {
         regex: /^(NY)(_\w{0,3})?_(CTR)$/,
         mapping: {
@@ -130,9 +130,9 @@ export const duplicatingSettings = [
         },
     },
     /**
-    * @description LECB Area
-    * @author 1558357
-    */
+     * @description LECB Area
+     * @author 1558357
+     */
     {
         regex: /^LECB_(?:RW[\d_]?|LLI|PPI)_CTR$/,
         mapping: {
@@ -141,9 +141,9 @@ export const duplicatingSettings = [
         },
     },
     /**
-    * @description ZHU Center and TRACONs
-    * @author 1010912
-    */
+     * @description ZHU Center and TRACONs
+     * @author 1010912
+     */
     {
         regex: /^HOU_\d{2}_CTR$/,
         mapping: {
@@ -165,9 +165,9 @@ export const duplicatingSettings = [
     },
 
     /**
-    * @description ZTL/A80 Center and TRACONs
-    * @author 1560654
-    */
+     * @description ZTL/A80 Center and TRACONs
+     * @author 1560654
+     */
     {
         regex: /^(ATL|A80|AHN|MCN|CSG)(?:_\w{1,3})?_(CTR|APP|DEP)$/,
         mapping: {
@@ -188,9 +188,9 @@ export const duplicatingSettings = [
         },
     },
     /**
-    * @description ZJX Center and TRACONs
-    * @author 1487925
-    */
+     * @description ZJX Center and TRACONs
+     * @author 1487925
+     */
     {
         regex: /^(F11|ZJX|DAB|JAX|VAD|TLH|PAM|VPS|OZR|P31|SAV|NBC|CHS|SSC|CAE|MYR|FLO)(_\w{0,3})?_(CTR|TMU|APP|DEP)$$/,
         mapping: {
@@ -267,6 +267,24 @@ export const duplicatingSettings = [
         },
     },
     /**
+    * @description ZLC Center and TRACONs
+    * @author 1378019
+    */
+    {
+        regex: /^(SLC|BOI|BZN|BIL|GTF|MSO|MUO|HLN|TWF)(_\w{0,3})?_(CTR|TMU|APP|DEP)$/,
+        mapping: {
+            SLC: 'SLC_APP',
+            BOI: 'BOI_APP',
+            BZN: 'BZN_APP',
+            BIL: 'BIL_APP',
+            GTF: 'GTF_APP',
+            MSO: 'MSO_APP',
+            MUO: 'MUO_APP',
+            HLN: 'HLN_APP',
+            TWF: 'TWF_APP',
+        },
+    },
+    /**
     * @description CZYZ FIR Terminal Sectors
     * @author 1401686 and 1448618
     */
@@ -285,7 +303,7 @@ export const duplicatingSettings = [
      * @author 1634151
      */
     {
-        regex: /^CHI_\d{2}_CTR$/,
+        regex: /^CHI_(\d+_)?CTR$/,
         mapping: {
             C90: 'CHI_Z_APP',
             AZO: 'AZO_G_APP',
@@ -299,6 +317,7 @@ export const duplicatingSettings = [
             SBN: 'SBN_N_APP',
             GUS: 'GUS_E_APP',
             VOK: 'VOK_APP',
+            OSH: 'OSH_V_APP',
         },
     },
     /**
@@ -337,9 +356,9 @@ export const duplicatingSettings = [
         },
     },
     /**
-    * @description ZME Center and TRACONs
-    * @author 1098471
-    */
+     * @description ZME Center and TRACONs
+     * @author 1098471
+     */
     {
         regex: /\b(?:MEM|BNA|LIT|FSM|JAN|HSV|HOP|NMM|CBM)\b/i,
         mapping: {
