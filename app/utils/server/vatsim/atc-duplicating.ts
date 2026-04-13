@@ -320,7 +320,7 @@ export const duplicatingSettings = [
             OSH: 'OSH_V_APP',
         },
     },
-     /**
+    /**
     * @description ZME Center and TRACONs
     * @author 1098471
     */
