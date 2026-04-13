@@ -404,8 +404,8 @@ function setBorderFeatureStyle(feature: Feature) {
         const uirs = useDataStore().vatspy.value?.data.uirs.map(x => x.icao);
         const isFss = properties.controllers.some((x: VatsimShortenedController) => x.duplicatedBy && uirs?.some(y => x.duplicatedBy!.startsWith(y)));
         defaultColor = isFss
-            ? getSelectedColorFromSettings('uirs') || `rgba(${ getCurrentThemeRgbColor('info400').join(',') }, 0.7)`
-            : getSelectedColorFromSettings('firs') || `rgba(${ getCurrentThemeRgbColor('success500').join(',') }, 0.7)`;
+            ? `rgba(${ getSelectedColorFromSettings('uirs', true) ?? getCurrentThemeRgbColor('info400').join(',') }, 0.7)`
+            : `rgba(${ getSelectedColorFromSettings('firs', true) || getCurrentThemeRgbColor('success500').join(',') }, 0.7)`;
     }
 
     feature.setStyle(new Style({
@@ -429,8 +429,8 @@ function setLabelFeatureStyle(feature: Feature) {
         const uirs = useDataStore().vatspy.value?.data.uirs.map(x => x.icao);
         const isFss = properties.controllers.some((x: VatsimShortenedController) => x.duplicatedBy && uirs?.some(y => x.duplicatedBy!.startsWith(y)));
         defaultColor = isFss
-            ? getSelectedColorFromSettings('uirs') || `rgba(${ getCurrentThemeRgbColor('info400').join(',') }, 1)`
-            : getSelectedColorFromSettings('firs') || `rgba(${ getCurrentThemeRgbColor('success500').join(',') }, 1)`;
+            ? `rgba(${ getSelectedColorFromSettings('uirs', true) ?? getCurrentThemeRgbColor('info400').join(',') }, 1)`
+            : `rgba(${ getSelectedColorFromSettings('firs', true) || getCurrentThemeRgbColor('success500').join(',') }, 1)`;
     }
 
     const style = [
