@@ -275,7 +275,13 @@ import { setupDataFetch } from '~/composables/render/storage';
 import MapOverlays from '~/components/map/overlays/MapOverlays.vue';
 import { useMapStore } from '~/store/map';
 import type { StoreOverlay } from '~/store/map';
-import { observerFlight, ownFlight, showPilotOnMap, skipObserver } from '~/composables/vatsim/pilots';
+import {
+    allArrivedPilots,
+    observerFlight,
+    ownFlight,
+    showPilotOnMap,
+    skipObserver,
+} from '~/composables/vatsim/pilots';
 import { findAtcByCallsign } from '~/composables/vatsim/controllers';
 import { boundingExtent, buffer, getCenter } from 'ol/extent.js';
 import { toDegrees } from 'ol/math.js';
@@ -317,6 +323,9 @@ import { getOriginalWorldCoordinate } from '~/composables/map/world';
 import MapSectorList from '~/components/map/layers/MapSectorList.vue';
 import MapAircraftList from '~/components/map/layers/MapAircraftList.vue';
 import MapMinifiedOverlays from '~/components/map/overlays/MapMinifiedOverlays.vue';
+import { isVatGlassesActive } from '~/utils/data/vatglasses';
+import { updateControllersRender } from '~/composables/render/update';
+import { runwaysState } from '~/composables/render/update/vatglasses';
 
 defineProps({
     mode: {
@@ -447,7 +456,7 @@ async function checkAndAddOwnAircraft() {
     initialSpawn = true;
     initialOwnCheck = true;
 
-    if (shouldTrack && overlay && overlay.type === 'pilot' && store.user.settings.autoZoom && !dataStore.vatsim.data.airports.value.some(x => x.aircraft.groundArr?.includes(aircraft.cid))) {
+    if (shouldTrack && overlay && overlay.type === 'pilot' && store.user.settings.autoZoom && !allArrivedPilots.has(aircraft.cid)) {
         showPilotOnMap(overlay.data.pilot, map.value);
     }
 }
@@ -891,10 +900,10 @@ await setupDataFetch({
             center = toLonLat(getCenter(projectionExtent));
         }
         else if (store.config.airports && !store.config.center) {
-            const airports = dataStore.vatspy.value?.data.airports.filter(x => store.config.airports?.includes(x.icao)) ?? [];
+            const airports = store.config.airports.map(x => dataStore.vatspy.value?.data.keyAirports.realIcao[x]).filter(x => x);
 
             if (airports.length) {
-                projectionExtent = buffer(boundingExtent(airports.map(x => fromLonLat([x.lon, x.lat]))), 0.5);
+                projectionExtent = buffer(boundingExtent(airports.map(x => fromLonLat([x!.lon, x!.lat]))), 0.5);
                 center = toLonLat(getCenter(projectionExtent));
             }
         }
@@ -1064,6 +1073,14 @@ await setupDataFetch({
 
         success = true;
     },
+});
+
+const vgLevel = computed(() => store.localSettings.vatglassesLevel);
+
+useUpdateCallback(['short', isVatGlassesActive, vgLevel, runwaysState], () => {
+    updateControllersRender();
+}, {
+    immediate: true,
 });
 
 function handleKeys(event: KeyboardEvent) {

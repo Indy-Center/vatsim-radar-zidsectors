@@ -8,35 +8,21 @@ import type {
 import type { Coordinate } from 'ol/coordinate.js';
 import type { VatSpyAirport } from '~/types/data/vatspy';
 import type { Units } from 'ol/control/ScaleLine.js';
-
-export interface MapAirport {
-    icao: string;
-    iata?: string;
-    isPseudo: boolean;
-    isSimAware: boolean;
-    aircraft: Partial<{
-        groundDep: number[];
-        groundArr: number[];
-        prefiles: number[];
-        departures: number[];
-        arrivals: number[];
-    }>;
-}
-
-export interface MapAirportVatspy extends MapAirport {
-    data: VatSpyAirport;
-}
+import type { DataAirport } from '~/composables/render/storage';
 
 export interface MapAirportRender {
-    airport: MapAirportVatspy;
+    airport: DataAirport;
     visible: boolean;
 }
 
-export type MapAircraftKeys = keyof MapAirport['aircraft'];
-export type MapAircraftList = MapAirport['aircraft'];
+export type MapAircraftKeys = keyof DataAirport['aircraft'];
+export type MapAircraftList = DataAirport['aircraft'];
 export type MapAircraftMode = 'all' | 'ground' | MapAircraftKeys;
 
-export type MapAircraft = PartialRecord<Exclude<keyof MapAirport['aircraft'], 'prefiles'>, VatsimShortenedAircraft[]> & {
+/**
+ * @deprecated
+ */
+export type MapAircraft = PartialRecord<Exclude<keyof DataAirport['aircraft'], 'prefiles'>, VatsimShortenedAircraft[]> & {
     prefiles?: VatsimShortenedPrefile[];
 };
 

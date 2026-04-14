@@ -8,8 +8,8 @@ import type { NavigraphNavDataShort } from '~/utils/server/navigraph/navdata/typ
 import type {
     RadarDataAirlinesAllList,
     SimAwareAPIData, SimAwareDataFeature,
-    VatglassesAPIData,
-    VatglassesDynamicAPIData,
+    VatglassesAPIData, VatglassesData,
+    VatglassesDynamicAPIData, VatglassesPosition,
 } from '~/utils/server/storage';
 import type { UseDataStore } from '~/composables/render/storage';
 
@@ -72,7 +72,7 @@ export function checkForUpdates() {
                         resolve();
                         clearInterval(interval);
                     }
-                }, 1000);
+                }, 3000);
             });
         }
 
@@ -100,6 +100,17 @@ export function checkForVATSpy() {
                 clientDB.delete();
                 location.reload();
             });
+
+            try {
+                await clientDB.vatspy.clear();
+                await clientDB.vatspy.bulkPut(Object.values(vatspy.data.features), Object.keys(vatspy.data.features));
+                await clientDB.vatspy.put(vatspy.version, 'version');
+            }
+            catch {
+                clientDB.delete();
+                location.reload();
+            }
+
             notRequired = false;
         }
 
@@ -119,7 +130,21 @@ export function checkForVATSpy() {
             }
         }
 
-        dataStore.vatspy.value = vatspy;
+        // @ts-expect-error intended
+        delete vatspy.data.airports;
+
+        // @ts-expect-error intended
+        delete vatspy.data.features;
+
+        dataStore.vatspy.value = {
+            version: vatspy.version,
+            data: vatspy.data,
+            feature: async key => {
+                const result = await clientDB.vatspy.get(key);
+
+                return typeof result === 'object' ? result : null;
+            },
+        };
         if (notRequired) return 'notRequired';
     });
 }
@@ -199,13 +224,45 @@ export function checkForVG() {
     return initCheck('vatglasses', async ({ dataStore }) => {
         if (!isVatGlassesActive.value) return 'notRequired';
         let vatglasses = await clientDB.data.get('vatglasses') as VatglassesAPIData | undefined;
+        const vatglassesVersion = await clientDB.vatglasses.get('version') as string | undefined;
 
-        if (!vatglasses || vatglasses.version !== dataStore.versions.value!.vatglasses) {
+        if (!vatglasses || !vatglassesVersion || vatglasses.version !== dataStore.versions.value!.vatglasses || vatglassesVersion !== dataStore.versions.value!.vatglasses) {
             vatglasses = await $fetch<VatglassesAPIData>('/api/data/vatglasses');
             await clientDB.data.put(vatglasses, 'vatglasses').catch(() => {
                 clientDB.delete();
                 location.reload();
             });
+
+            const data = vatglasses.data;
+            if (!data) throw new Error('VATGlasses data is unavailable');
+
+            await clientDB.vatglasses.clear();
+
+            const vgPositions: Record<string, VatglassesPosition[] | VatglassesData[string]> = {};
+
+            for (const country in data) {
+                vgPositions[`country-${ country }`] = data[country];
+
+                for (const position in data[country].positions) {
+                    let prefixes = data[country].positions[position].pre;
+                    if (typeof prefixes === 'string') prefixes = [prefixes];
+
+                    if (!prefixes) continue;
+                    for (const prefix of prefixes) {
+                        const key = `position-${ prefix.split('_')[0] }`;
+
+                        vgPositions[key] ??= [];
+                        (vgPositions[key] as VatglassesPosition[]).push({
+                            ...data[country].positions[position],
+                            id: position,
+                            countryId: country,
+                        });
+                    }
+                }
+            }
+
+            await clientDB.vatglasses.bulkPut(Object.values(vgPositions), Object.keys(vgPositions));
+            await clientDB.vatglasses.put(dataStore.versions.value!.vatglasses, 'version');
         }
 
         dataStore.vatglasses.value = vatglasses.version;

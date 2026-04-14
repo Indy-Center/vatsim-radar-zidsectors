@@ -184,12 +184,12 @@ export const useStore = defineStore('index', {
                     }
                 }
 
-                for (const atc of dataStore.vatsim.data.locals.value) {
-                    if (atc.atc.isATIS || atc.atc.duplicated) continue;
-                    if (listsUsers.has(atc.atc.cid)) {
-                        foundUsers[atc.atc.cid] = {
+                for (const atc of dataStore.vatsim.data.controllers.value) {
+                    if (atc.duplicated) continue;
+                    if (listsUsers.has(atc.cid)) {
+                        foundUsers[atc.cid] = {
                             type: 'atc',
-                            data: atc.atc,
+                            data: atc,
                         };
                     }
                 }
@@ -203,16 +203,6 @@ export const useStore = defineStore('index', {
                                 data: atc,
                             };
                         }
-                    }
-                }
-
-                for (const atc of dataStore.vatsim.data.firs.value) {
-                    if (atc.controller.isATIS || atc.controller.duplicated) continue;
-                    if (listsUsers.has(atc.controller.cid)) {
-                        foundUsers[atc.controller.cid] = {
-                            type: atc.controller.rating === 1 ? 'sup' : 'atc',
-                            data: atc.controller,
-                        };
                     }
                 }
             }
@@ -288,7 +278,7 @@ export const useStore = defineStore('index', {
                 if (force || !dataStore.vatsim._mandatoryData.value || (!versions || versions.data !== dataStore.vatsim.updateTimestamp.value)) {
                     if (!dataStore.vatsim.data) dataStore.vatsim.data = {} as any;
 
-                    const data = await $fetch<VatsimLiveData | VatsimLiveDataShort>(`/api/data/vatsim/data${ dataStore.vatsim.data.general.value?.connected_clients ? '/short' : '' }`, {
+                    const data = await $fetch<VatsimLiveData | VatsimLiveDataShort>(`/api/data/vatsim/data${ dataStore.vatsim.data.general.value?.unique_users ? '/short' : '' }`, {
                         timeout: 1000 * 60,
                     });
                     await setVatsimDataStore(data);
