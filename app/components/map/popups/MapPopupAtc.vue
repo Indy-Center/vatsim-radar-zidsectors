@@ -28,7 +28,7 @@
         </template>
         <template #data>
             <common-notification v-if="atc.duplicatedBy">
-                This facility is owned and duplicated by {{atc.duplicatedBy}}
+                This facility is owned and extended by {{atc.duplicatedBy}}
             </common-notification>
             <div class="atc__sections">
                 <div class="atc__info">
