@@ -308,8 +308,8 @@ watch([search, opened], async ([val]) => {
 
         if (!airports.length) {
             airports = Object.values(dataStore.airportsList.value)
-                .filter(x => dataStore.vatspy.value?.data.keyAirports.realIcao[x.icao]?.name.toUpperCase().includes(val))
-                .map(x => dataStore.vatspy.value!.data.keyAirports.realIcao[x.icao]) ?? [];
+                .filter(x => dataStore.vatspy.value?.data.keyAirports.realIcao[x!.icao]?.name.toUpperCase().includes(val))
+                .map(x => dataStore.vatspy.value!.data.keyAirports.realIcao[x!.icao]) ?? [];
         }
         else exactAirportsMatch.value = true;
 

@@ -5,6 +5,8 @@ import { updateControllers } from '~/composables/render/update/atc';
 
 export interface DataUpdateContext { airports: Record<string, DataAirport>; sectors: Record<string, DataSector>; atcAdded: Set<string> | null; airportsAdded: Set<string> }
 
+let vgFirstRun: boolean | undefined = true;
+
 export async function updateControllersRender() {
     const dataStore = useDataStore();
 
@@ -27,7 +29,11 @@ export async function updateControllersRender() {
 
     updateAircraft(context);
 
-    await updateVATGlasses(context);
+    const isFirstRun = !!vgFirstRun;
+
+    if (!dataStore.vatglassesCombiningInProgress.value) {
+        vgFirstRun = await updateVATGlasses(context);
+    }
     await updateControllers(context);
 
     for (const airport in context.airports) {
@@ -41,5 +47,9 @@ export async function updateControllersRender() {
 
     if (context.atcAdded) {
         dataStore.atcAddedDuringUpdate.value = context.atcAdded;
+    }
+
+    if (isFirstRun && !vgFirstRun) {
+        updateControllersRender();
     }
 }

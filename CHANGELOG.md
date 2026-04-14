@@ -1,5 +1,14 @@
 # Changelog
 
+# [2.0.0-alpha.7.1]
+
+## Alpha Changes
+
+- Fixed VATGlasses crashing sometimes
+- Fixed VATGlasses combined mode (multiple fixes there)
+- Fixed rare crashes of airport/atc list
+- Fixed VATGlasses rerendering much more often than needed
+
 # [2.0.0-alpha.7]
 
 Sectors and airports list render has been reworked from scratch. Please take a moment to compare what you see with production Radar.
@@ -10,7 +19,7 @@ Sectors and airports list render has been reworked from scratch. Please take a m
 - VATGlasses controllers and TRACONs covering multiple airports are now properly shown in "ATC" tab of pilot or airport
 - Added active runway parsing from ATIS on airport/ATIS, as well as runway auto-select for VATGlasses
 - Airport counters update will be much faster now
-- "Booked until" will now be displayed for controllers on hover
+- "Booked until" will now be displayedvb for controllers on hover
 
 ## Bug Fixes
 

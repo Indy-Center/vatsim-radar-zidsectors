@@ -54,11 +54,11 @@ const arrMarkers = [
     'FOR ARRS.',
 ];
 
-const breakTentative = ['TLS', 'TRANSITION LEVEL', 'ARRS.', 'FOR ARRS. RWY'];
+const breakTentative = ['TLS', 'TRL', 'TRANSITION LEVEL', 'ARRS.', 'FOR ARRS. RWY'];
 
 const runwayRegex = /^(RWY)?(?<runway>\d{2}) ?(?<postfix>R|L|C|RIGHT|LEFT|CENTER)?(,|\.)?$/;
 const auRegex = /\[RWY] (\d{2} ?(R|L|C|RIGHT|LEFT|CENTER)?)+$/;
-const auRegexCommon = /\[RWY] (\d{2} ?(R|L|C|RIGHT|LEFT|CENTER)?) \[/;
+const auRegexCommon = /\[RWY] (\d{2} ?(R|L|C|RIGHT|LEFT|CENTER)?) ([\[+])/;
 
 function hasMarker(str: string, depMarkers: string[]) {
     const last = str.at(-1);

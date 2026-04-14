@@ -232,7 +232,7 @@ export interface UseDataStore {
         country: (id: string) => Promise<VatglassesData[string] | null>;
     };
 
-    airportsList: ShallowRef<Record<string, DataAirport>>;
+    airportsList: ShallowRef<PartialRecord<string, DataAirport>>;
     sectorsList: ShallowRef<DataSector[]>;
     atcAddedDuringUpdate: ShallowRef<Set<string>>;
     vatglassesActivePositions: ShallowRef<VatglassesActivePositions>;

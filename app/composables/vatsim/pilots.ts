@@ -65,6 +65,7 @@ export const allPilotsOnGround = computed(() => {
     const dataStore = useDataStore();
     for (const icao in dataStore.airportsList.value) {
         const airport = dataStore.airportsList.value[icao];
+        if (!airport) continue;
 
         const arr = airport.aircraft.groundArr;
         if (arr) {

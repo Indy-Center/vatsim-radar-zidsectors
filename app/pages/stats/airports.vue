@@ -87,12 +87,12 @@ provideAirport(overlayData);
 const airports = computed<Airport[]>(() => {
     return Object.values(dataStore.airportsList.value).map(x => ({
         ...x,
-        ...dataStore.vatspy.value?.data.keyAirports.realIcao[x.icao],
-        departed: x.aircraft.departures?.length ?? 0,
-        arriving: x.aircraft.arrivals?.length ?? 0,
-        departing: x.aircraft.groundDep?.length ?? 0,
-        arrived: x.aircraft.groundArr?.length ?? 0,
-        count: Object.values(x.aircraft).reduce((sum, a) => sum + a.length, 0),
+        ...dataStore.vatspy.value?.data.keyAirports.realIcao[x!.icao],
+        departed: x!.aircraft.departures?.length ?? 0,
+        arriving: x!.aircraft.arrivals?.length ?? 0,
+        departing: x!.aircraft.groundDep?.length ?? 0,
+        arrived: x!.aircraft.groundArr?.length ?? 0,
+        count: Object.values(x!.aircraft).reduce((sum, a) => sum + a.length, 0),
     })).sort((a, b) => b.count - a.count) as unknown as Airport[];
 });
 </script>

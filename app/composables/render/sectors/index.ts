@@ -132,6 +132,7 @@ export function setMapSectors({ source, firs, layer, labelsSource, labelsLayer }
                 else {
                     existingFeatures.forEach(x => x.setProperties({
                         atc: position.atc,
+                        lastLevelOrCombined,
                     }));
                 }
             }

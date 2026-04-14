@@ -369,7 +369,7 @@ export function setMapAirports({ source, airports, layer }: {
             }
 
             if (isMapFeature('airport-circle', properties) || isMapFeature('airport-circle-label', properties)) {
-                if (!airport.atc.some(x => x.facility === facilitiesIds.APP) || airport.features?.length) {
+                if (!airport.atc.some(x => x.facility === facilitiesIds.APP) || airport.features?.length || properties.atc.every(x => dataStore.atcAddedDuringUpdate.value.has(x.callsign))) {
                     source.removeFeature(feature);
                     feature.dispose();
                 }

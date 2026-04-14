@@ -78,7 +78,7 @@ const getShownPilots = computed(() => {
 
     for (const icao in dataStore.airportsList.value) {
         const airport = dataStore.airportsList.value[icao];
-        if (airport.icao === arrivalAirport) continue;
+        if (!airport || airport.icao === arrivalAirport) continue;
 
         if (me && !store.mapSettings.groundTraffic?.excludeMyLocation) {
             const check = airport.aircraft.groundDep?.includes(me.cid) || airport.aircraft.groundArr?.includes(me.cid) || airport.aircraft.prefiles?.includes(me.cid);
@@ -241,7 +241,7 @@ function setVisiblePilots() {
         for (const key in dataStore.airportsList.value) {
             if (!store.config.airports!.includes(key)) continue;
 
-            for (const cid of Object.values(dataStore.airportsList.value[key].aircraft).flat()) {
+            for (const cid of Object.values(dataStore.airportsList.value[key]?.aircraft ?? []).flat()) {
                 aircraft.add(cid);
             }
         }

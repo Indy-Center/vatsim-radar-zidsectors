@@ -30,7 +30,7 @@ export const getATCForAirport = (data: Ref<StoreOverlayAirport['data']>) => {
         if (injected) return toValue(injected);
         const dataStore = useDataStore();
 
-        let list = dataStore.airportsList.value[data.value.icao].atc;
+        let list = dataStore.airportsList.value[data.value.icao]?.atc ?? [];
 
         const vatspyAirport = dataStore.vatspy.value?.data.keyAirports.realIcao[data.value.icao];
 

@@ -39,7 +39,7 @@
                     Combined Mode
 
                     <template #description>
-                        All sectors at once. Eats performance.
+                        All sectors at once. Slows down updates depending on your device.
                     </template>
                 </ui-toggle>
                 <div

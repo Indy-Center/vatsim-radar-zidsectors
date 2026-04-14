@@ -194,8 +194,7 @@ export function checkForSimAware() {
                 await clientDB.simaware.bulkPut(Object.values(groups), Object.keys(groups));
                 await clientDB.simaware.put(data.version, 'version');
             }
-            catch (e) {
-                console.error(e);
+            catch {
                 clientDB.delete();
                 location.reload();
             }
@@ -231,8 +230,7 @@ export function checkForVG() {
 
         if (!vatglasses || !vatglassesVersion || vatglasses.version !== dataStore.versions.value!.vatglasses || vatglassesVersion !== dataStore.versions.value!.vatglasses) {
             vatglasses = await $fetch<VatglassesAPIData>('/api/data/vatglasses');
-            await clientDB.data.put(vatglasses, 'vatglasses').catch(e => {
-                console.error(e);
+            await clientDB.data.put(vatglasses, 'vatglasses').catch(() => {
                 clientDB.delete();
                 location.reload();
             });
@@ -265,15 +263,8 @@ export function checkForVG() {
                 }
             }
 
-            try {
-                await clientDB.vatglasses.bulkPut(Object.values(vgPositions), Object.keys(vgPositions));
-                await clientDB.vatglasses.put(dataStore.versions.value!.vatglasses, 'version');
-            }
-            catch (e) {
-                console.error(e);
-                clientDB.delete();
-                location.reload();
-            }
+            await clientDB.vatglasses.bulkPut(Object.values(vgPositions), Object.keys(vgPositions));
+            await clientDB.vatglasses.put(dataStore.versions.value!.vatglasses, 'version');
         }
 
         dataStore.vatglasses.value = vatglasses.version;
@@ -322,7 +313,6 @@ async function upsertBagsByIdentifier<D extends any[], T extends Record<string, 
         }
     }
     catch (e) {
-        console.error(e);
         await clientDB.delete();
         throw e;
     }

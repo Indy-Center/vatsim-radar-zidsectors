@@ -17,6 +17,7 @@ import { setAircraftLineStyle, setAircraftStyle } from '~/composables/render/air
 import { updateAircraftTracksData } from '~/composables/render/aircraft/tracks';
 import { aircraftState } from './state';
 import type { DataAirport } from '~/composables/render/storage';
+import type { PartialRecord } from '~/types';
 
 export interface TrackData { show: 'short' | 'full'; pilot: VatsimShortenedAircraft; isShown: boolean; isDeparture?: boolean; isArrival?: boolean }
 
@@ -55,7 +56,7 @@ function getAircraftScale(pilot: VatsimShortenedAircraft | undefined, coordinate
     return +(baseScale * getZoomScaleMultiplier({ zoom: useMapStore().zoom, baseScale, iconPixelWidth: iconWidth, latitude: lat, isPilotOnGround })).toFixed(3);
 }
 
-function getAircraftStatus({ pilot, selfFlight, aircraft, overlay, showTracks, isOnGround }: AircraftRenderState, airportsMap: Record<string, DataAirport>): MapAircraftStatus {
+function getAircraftStatus({ pilot, selfFlight, aircraft, overlay, showTracks, isOnGround }: AircraftRenderState, airportsMap: PartialRecord<string, DataAirport>): MapAircraftStatus {
     const store = useStore();
 
     if (selfFlight || store.config.allAircraftGreen) return 'green';

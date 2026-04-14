@@ -9,7 +9,7 @@ export interface VatglassesActivePosition {
     atc: VatsimShortenedController[];
     sectors: TurfFeature<TurfPolygon, VatglassesSectorProperties>[] | null;
     sectorsCombined: TurfFeature<TurfPolygon, VatglassesSectorProperties>[] | null;
-    activeRunway: string | null;
+    activeRunway: Record<string, string>;
     airspaceKeys: string | null;
     lastUpdated: string | null;
 }

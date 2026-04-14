@@ -237,6 +237,7 @@ export async function getInitialAirportsList({ navigraphData, source, map }: {
         const list: MapAirportRender[] = [];
 
         await Promise.all(Object.values(airports).map(async x => {
+            if (!x) return;
             const vatAirport = dataStore.vatspy.value!.data.keyAirports.realIata[x.iata ?? ''] ??
                 dataStore.vatspy.value!.data.keyAirports.realIcao[x.icao ?? ''] ??
                 dataStore.vatspy.value!.data.keyAirports.iata[x.iata ?? ''] ??

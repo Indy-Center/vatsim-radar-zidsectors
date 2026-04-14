@@ -69,7 +69,13 @@ export interface VatglassesAirport {
     coord?: number[];
     runways?: string[];
     default?: boolean;
-    topdown?: string[];
+    topdown?: string[] | {
+        runway: {
+            runway: string;
+            icao: string;
+        };
+        topdown: string[];
+    }[];
     major?: string;
     end?: {
         [key: string]: { [key: string]: string };

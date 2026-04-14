@@ -58,12 +58,12 @@ function setActiveRunway(runway: string) {
 }
 
 const getRunways = computed<Runway[]>(() => {
-    if (!airport.value?.vgRunways) return [];
+    if (!airport.value || !airport.value?.vgRunways) return [];
 
     return airport.value.vgRunways.map(runway => {
         return {
             key: runway,
-            active: airport.value.activeRunway === runway,
+            active: airport.value!.activeRunway === runway,
             runways: runway.split(',').map(x => x.trim()),
         };
     });

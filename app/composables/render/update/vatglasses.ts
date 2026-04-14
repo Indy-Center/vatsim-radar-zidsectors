@@ -171,6 +171,7 @@ function convertSectorToGeoJson(country: VatglassesData[string], sector: Vatglas
 }
 
 export const runwaysState = useStorageLocal<Record<string, string>>('vg-runways', {});
+let firstRun = true;
 
 export async function updateVATGlasses(context: DataUpdateContext) {
     if (!isVatGlassesActive.value) return;
@@ -250,6 +251,7 @@ export async function updateVATGlasses(context: DataUpdateContext) {
             countryData.airports[airport].icao = airport;
 
             for (let owner of countryData.airports[airport].topdown ?? []) {
+                if (typeof owner !== 'string') continue;
                 owner = owner.split('/')[1] ?? owner;
                 vgPositionAirports[country + owner] ??= [];
                 vgPositionAirports[country + owner].push(countryData.airports[airport]);
@@ -362,8 +364,8 @@ export async function updateVATGlasses(context: DataUpdateContext) {
                         else airport.activeRunway = vgRunways[0];
                     }
 
-                    if (airport.activeRunway && activePosition && airport.activeRunway !== activePosition.activeRunway) {
-                        activePosition.activeRunway = airport.activeRunway;
+                    if (airport.activeRunway && activePosition && airport.activeRunway !== activePosition.activeRunway[airport.icao]) {
+                        activePosition.activeRunway[airport.icao] = airport.activeRunway;
                         activePosition.sectors = null;
                         activePosition.sectorsCombined = null;
                     }
@@ -376,20 +378,18 @@ export async function updateVATGlasses(context: DataUpdateContext) {
         for (const positionId in foundAirspaces[countryGroupId]) {
             finalPositions[countryGroupId] ??= {};
 
-            if (finalPositions[countryGroupId]?.[positionId]) {
-                if (vatglassesActivePositions[countryGroupId]?.[positionId]) {
-                    finalPositions[countryGroupId][positionId] = {
-                        ...vatglassesActivePositions[countryGroupId][positionId],
-                        atc: foundControllers[countryGroupId]?.[positionId] ?? [],
-                    };
-                }
+            if (vatglassesActivePositions[countryGroupId]?.[positionId]) {
+                finalPositions[countryGroupId][positionId] = {
+                    ...vatglassesActivePositions[countryGroupId][positionId],
+                    atc: foundControllers[countryGroupId]?.[positionId] ?? [],
+                };
             }
             else {
                 finalPositions[countryGroupId][positionId] = {
                     atc: foundControllers[countryGroupId]?.[positionId] ?? [],
                     sectors: null,
                     sectorsCombined: null,
-                    activeRunway: null,
+                    activeRunway: {},
                     airspaceKeys: null,
                     lastUpdated: null,
                 };
@@ -435,12 +435,14 @@ export async function updateVATGlasses(context: DataUpdateContext) {
 
     dataStore.vatglassesActivePositions.value = finalPositions;
 
-    if (store.mapSettings.vatglasses?.active && store.mapSettings.vatglasses?.combined && !dataStore.vatglassesCombiningInProgress.value) {
+    if (!firstRun && store.mapSettings.vatglasses?.active && store.mapSettings.vatglasses?.combined && !dataStore.vatglassesCombiningInProgress.value) {
         dataStore.vatglassesCombiningInProgress.value = true;
-        combineAllVatglassesActiveSectors(finalPositions).catch(e => console.error(e)).finally(() => {
-            dataStore.vatglassesCombiningInProgress.value = false;
-        });
+        await combineAllVatglassesActiveSectors(finalPositions).catch(e => console.error(e));
+        dataStore.vatglassesCombiningInProgress.value = false;
     }
 
+    firstRun = !atcAdded.size;
     context.atcAdded = atcAdded;
+
+    return firstRun;
 }
