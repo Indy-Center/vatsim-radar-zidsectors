@@ -96,7 +96,8 @@ export function checkForVATSpy() {
         if (!vatspy || vatspy.version !== dataStore.versions.value!.vatspy) {
             vatspy = await $fetch<VatSpyAPIData>('/api/data/vatspy');
 
-            await clientDB.data.put(vatspy, 'vatspy').catch(() => {
+            await clientDB.data.put(vatspy, 'vatspy').catch(e => {
+                console.error(e);
                 clientDB.delete();
                 location.reload();
             });
@@ -106,7 +107,8 @@ export function checkForVATSpy() {
                 await clientDB.vatspy.bulkPut(Object.values(vatspy.data.features), Object.keys(vatspy.data.features));
                 await clientDB.vatspy.put(vatspy.version, 'version');
             }
-            catch {
+            catch (e) {
+                console.error(e);
                 clientDB.delete();
                 location.reload();
             }
@@ -192,7 +194,8 @@ export function checkForSimAware() {
                 await clientDB.simaware.bulkPut(Object.values(groups), Object.keys(groups));
                 await clientDB.simaware.put(data.version, 'version');
             }
-            catch {
+            catch (e) {
+                console.error(e);
                 clientDB.delete();
                 location.reload();
             }
@@ -228,7 +231,8 @@ export function checkForVG() {
 
         if (!vatglasses || !vatglassesVersion || vatglasses.version !== dataStore.versions.value!.vatglasses || vatglassesVersion !== dataStore.versions.value!.vatglasses) {
             vatglasses = await $fetch<VatglassesAPIData>('/api/data/vatglasses');
-            await clientDB.data.put(vatglasses, 'vatglasses').catch(() => {
+            await clientDB.data.put(vatglasses, 'vatglasses').catch(e => {
+                console.error(e);
                 clientDB.delete();
                 location.reload();
             });
@@ -261,8 +265,15 @@ export function checkForVG() {
                 }
             }
 
-            await clientDB.vatglasses.bulkPut(Object.values(vgPositions), Object.keys(vgPositions));
-            await clientDB.vatglasses.put(dataStore.versions.value!.vatglasses, 'version');
+            try {
+                await clientDB.vatglasses.bulkPut(Object.values(vgPositions), Object.keys(vgPositions));
+                await clientDB.vatglasses.put(dataStore.versions.value!.vatglasses, 'version');
+            }
+            catch (e) {
+                console.error(e);
+                clientDB.delete();
+                location.reload();
+            }
         }
 
         dataStore.vatglasses.value = vatglasses.version;
@@ -311,6 +322,7 @@ async function upsertBagsByIdentifier<D extends any[], T extends Record<string, 
         }
     }
     catch (e) {
+        console.error(e);
         await clientDB.delete();
         throw e;
     }
