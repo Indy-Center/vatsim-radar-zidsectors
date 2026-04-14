@@ -327,19 +327,19 @@ export const duplicatingSettings = [
     {
         regex: /^MMEX(\_\w{0,3})?\_CTR$/,
         mapping: {
-            'MEX': 'MMMX_APP',
-            'GDL': 'MMGL_APP',
-            'PVR': 'MMPR_APP',
-            'BJX': 'MMLO_APP',
-            'MLM': 'MMMM_APP',
-            'OAX': 'MMOX_APP',
-            'VER': 'MMVR_APP',
-            'TAM': 'MMTM_APP',
-            'SLP': 'MMSP_APP',
-            'QET': 'MMQT_APP',
-            'ZIH': 'MMZH_APP',
-            'ZLO': 'MMZO_APP',
-            'ACA': 'MMAA_APP',
+            MEX: 'MMMX_APP',
+            GDL: 'MMGL_APP',
+            PVR: 'MMPR_APP',
+            BJX: 'MMLO_APP',
+            MLM: 'MMMM_APP',
+            OAX: 'MMOX_APP',
+            VER: 'MMVR_APP',
+            TAM: 'MMTM_APP',
+            SLP: 'MMSP_APP',
+            QET: 'MMQT_APP',
+            ZIH: 'MMZH_APP',
+            ZLO: 'MMZO_APP',
+            ACA: 'MMAA_APP',
         },
     },
     /**
@@ -373,4 +373,58 @@ export const duplicatingSettings = [
             NMM: 'NMM_APP',
         },
     },
+    /**
+     * @description MMZT ACC and TMA sectors
+     * @author 1523823
+     */
+    {
+        regex: /^MMZT(\_\w{0,3})?\_CTR$/,
+        mapping: {
+            TIJ: 'MMTJ_APP',
+            MXL: 'MMML_APP',
+            LAP: 'MMLP_APP',
+            SJD: 'MMSD_APP',
+            MZT: 'MMMZ_APP',
+            DGO: 'MMDO_APP',
+            CUL: 'MMCL_APP',
+            LMM: 'MMLM_APP',
+            CEN: 'MMCN_APP',
+            HMO: 'MMHO_APP',
+        },
+    },
+
+    /**
+     * @description MMTY ACC and TMA sectors
+     * @author 1523823
+     */
+    {
+        regex: /^MMTY(\_\w{0,3})?\_CTR$/,
+        mapping: {
+            CJS: 'MMCS_APP',
+            CUU: 'MMCU_APP',
+            TRC: 'MMTC_APP',
+            SLW: 'MMIO_APP',
+            NLD: 'MMNL_APP',
+            MTY: 'MMMY_APP',
+            REX: 'MMRX_APP',
+            MAM: 'MMMA_APP',
+            CVM: 'MMCV_APP',
+        },
+    },
+
+    /**
+     * @description MMID ACC and TMA sectors
+     * @author 1523823
+     */
+    {
+        regex: /^MMID(\_\w{0,3})?\_CTR$/,
+        mapping: {
+            TGZ: 'MMTG_APP',
+            VSA: 'MMVA_APP',
+            CME: 'MMCE_APP',
+            MID: 'MMMD_APP',
+            CUN: 'MMUN_APP',
+        },
+    },
+
 ] satisfies DuplicatingSetting[];
