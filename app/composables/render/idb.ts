@@ -1,4 +1,4 @@
-import type { VatSpyAPIData, VatSpyDataProperties } from '~/types/data/vatspy';
+import type { VatSpyAPIData } from '~/types/data/vatspy';
 import type { Table } from 'dexie';
 import Dexie from 'dexie';
 import type {
@@ -17,7 +17,6 @@ import type {
     NavigraphNavDataStar,
     NavigraphNavDataStarShort,
 } from '~/utils/server/navigraph/navdata/types';
-import type { Feature, MultiPolygon } from 'geojson';
 
 export interface IDBAirlinesData {
     expireDate: number;
