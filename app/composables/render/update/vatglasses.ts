@@ -98,13 +98,13 @@ function getActiveSectorsOfAirspace(airspace: VatglassesAirspace, context: DataU
             let configActive = true;
             for (const sectorRunway of sector.runways) {
                 if (Array.isArray(sectorRunway.runway)) {
-                    if (!sectorRunway.runway.includes(airports[sectorRunway.icao].activeRunway ?? '')) {
+                    if (!sectorRunway.runway.includes(airports[sectorRunway.icao]?.activeRunway ?? '')) {
                         configActive = false;
                         break;
                     }
                 }
                 else {
-                    if (sectorRunway.runway !== airports[sectorRunway.icao].activeRunway) {
+                    if (sectorRunway.runway !== airports[sectorRunway.icao]?.activeRunway) {
                         configActive = false;
                         break;
                     }
