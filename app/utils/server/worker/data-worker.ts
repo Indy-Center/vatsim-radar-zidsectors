@@ -606,7 +606,7 @@ defineCronJob('* * * * * *', async () => {
                 rm: pilot.military_rating,
                 la: pilot.latitude,
                 lo: pilot.longitude,
-                al: pilot.latitude,
+                al: pilot.altitude,
                 gs: pilot.groundspeed,
                 ts: pilot.transponder,
                 hd: pilot.heading,
