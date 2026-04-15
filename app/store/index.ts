@@ -4,7 +4,13 @@ import type { MapAircraftMode, UserLocalSettings } from '~/types/map';
 
 import type { ThemesList } from '~/utils/colors';
 import type { VatDataVersions } from '~/types/data';
-import type { VatsimBooking, VatsimLiveData, VatsimLiveDataShort, VatsimMandatoryData } from '~/types/data/vatsim';
+import type {
+    VatsimBooking,
+    VatsimLiveCompactData, VatsimLiveCompactDataShort,
+    VatsimLiveData,
+    VatsimLiveDataShort,
+    VatsimMandatoryData,
+} from '~/types/data/vatsim';
 import { setVatsimDataStore } from '~/composables/render/storage';
 import type { Coordinate } from 'ol/coordinate.js';
 import type { UserMapPreset, UserMapSettings } from '~/utils/server/handlers/map-settings';
@@ -278,7 +284,7 @@ export const useStore = defineStore('index', {
                 if (force || !dataStore.vatsim._mandatoryData.value || (!versions || versions.data !== dataStore.vatsim.updateTimestamp.value)) {
                     if (!dataStore.vatsim.data) dataStore.vatsim.data = {} as any;
 
-                    const data = await $fetch<VatsimLiveData | VatsimLiveDataShort>(`/api/data/vatsim/data${ dataStore.vatsim.data.general.value?.unique_users ? '/short' : '' }`, {
+                    const data = await $fetch<VatsimLiveCompactData | VatsimLiveCompactDataShort>(`/api/data/vatsim/data/compact${ dataStore.vatsim.data.general.value?.unique_users ? '/short' : '' }`, {
                         timeout: 1000 * 60,
                     });
                     await setVatsimDataStore(data);

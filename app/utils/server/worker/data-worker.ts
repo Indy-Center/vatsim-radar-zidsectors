@@ -1,6 +1,10 @@
 import type { BARS, BARSShort, VatsimStorage } from '../storage';
 import { radarStorage } from '../storage';
-import type { VatsimData, VatsimShortenedController } from '~/types/data/vatsim';
+import type {
+    VatsimData,
+    VatsimLiveDataMap,
+    VatsimShortenedController,
+} from '~/types/data/vatsim';
 import updateVatsimExtendedPilots, {
     updateVatsimDataStorage,
     updateVatsimMandatoryDataStorage,
@@ -563,6 +567,147 @@ defineCronJob('* * * * * *', async () => {
             });
         }
 
+        const shortDatafeed: VatsimLiveDataMap = {
+            pilots: [],
+            observers: [],
+            controllers: [],
+            atis: [],
+            prefiles: [],
+            map: {
+                aircraft_faa: [],
+                aircraft_short: [],
+                airports: [],
+                frequencies: [],
+                status: [],
+                codes: [],
+            },
+        };
+
+        for (const pilot of radarStorage.vatsim.regularData!.pilots) {
+            if (pilot.aircraft_faa && !shortDatafeed.map.aircraft_faa.includes(pilot.aircraft_faa)) shortDatafeed.map.aircraft_faa.push(pilot.aircraft_faa);
+            if (pilot.aircraft_short && !shortDatafeed.map.aircraft_short.includes(pilot.aircraft_short)) shortDatafeed.map.aircraft_short.push(pilot.aircraft_short);
+            if (pilot.departure && !shortDatafeed.map.airports.includes(pilot.departure)) shortDatafeed.map.airports.push(pilot.departure);
+            if (pilot.arrival && !shortDatafeed.map.airports.includes(pilot.arrival)) shortDatafeed.map.airports.push(pilot.arrival);
+            if (pilot.diverted_arrival && !shortDatafeed.map.airports.includes(pilot.diverted_arrival)) shortDatafeed.map.airports.push(pilot.diverted_arrival);
+            if (pilot.diverted_origin && !shortDatafeed.map.airports.includes(pilot.diverted_origin)) shortDatafeed.map.airports.push(pilot.diverted_origin);
+            if (pilot.airport && !shortDatafeed.map.airports.includes(pilot.airport)) shortDatafeed.map.airports.push(pilot.airport);
+            if (pilot.status && !shortDatafeed.map.status.includes(pilot.status)) shortDatafeed.map.status.push(pilot.status);
+            if (pilot.frequencies?.length) {
+                for (const frequency of pilot.frequencies) {
+                    if (!shortDatafeed.map.frequencies.includes(frequency)) shortDatafeed.map.frequencies.push(frequency);
+                }
+            }
+
+            shortDatafeed.pilots.push({
+                ci: pilot.cid,
+                n: pilot.name,
+                ca: pilot.callsign,
+                rp: pilot.pilot_rating,
+                rm: pilot.military_rating,
+                la: pilot.latitude,
+                lo: pilot.longitude,
+                al: pilot.latitude,
+                gs: pilot.groundspeed,
+                ts: pilot.transponder,
+                hd: pilot.heading,
+                qn: pilot.qnh_mb,
+                frq: pilot.frequencies.map(x => shortDatafeed.map.frequencies.indexOf(x)),
+                sim: pilot.sim,
+                tfa: !pilot.aircraft_faa ? undefined : shortDatafeed.map.aircraft_faa.indexOf(pilot.aircraft_faa),
+                tsh: !pilot.aircraft_short ? undefined : shortDatafeed.map.aircraft_short.indexOf(pilot.aircraft_short),
+                dep: !pilot.departure ? undefined : shortDatafeed.map.airports.indexOf(pilot.departure),
+                arr: !pilot.arrival ? undefined : shortDatafeed.map.airports.indexOf(pilot.arrival),
+                dva: !pilot.diverted_arrival ? undefined : shortDatafeed.map.airports.indexOf(pilot.diverted_arrival),
+                dvo: !pilot.diverted_origin ? undefined : shortDatafeed.map.airports.indexOf(pilot.diverted_origin),
+                s: !pilot.status ? undefined : shortDatafeed.map.status.indexOf(pilot.status),
+                dpd: pilot.depDist,
+                dpg: pilot.toGoDist,
+                ap: !pilot.airport ? undefined : shortDatafeed.map.airports.indexOf(pilot.airport),
+                rl: pilot.flight_rules,
+            });
+        }
+
+        for (const pilot of radarStorage.vatsim.regularData!.prefiles) {
+            if (pilot.aircraft_faa && !shortDatafeed.map.aircraft_faa.includes(pilot.aircraft_faa)) shortDatafeed.map.aircraft_faa.push(pilot.aircraft_faa);
+            if (pilot.aircraft_short && !shortDatafeed.map.aircraft_short.includes(pilot.aircraft_short)) shortDatafeed.map.aircraft_short.push(pilot.aircraft_short);
+            if (pilot.departure && !shortDatafeed.map.airports.includes(pilot.departure)) shortDatafeed.map.airports.push(pilot.departure);
+            if (pilot.arrival && !shortDatafeed.map.airports.includes(pilot.arrival)) shortDatafeed.map.airports.push(pilot.arrival);
+
+            shortDatafeed.prefiles.push({
+                ci: pilot.cid,
+                n: pilot.name,
+                ca: pilot.callsign,
+                tfa: !pilot.aircraft_faa ? undefined : shortDatafeed.map.aircraft_faa.indexOf(pilot.aircraft_faa),
+                tsh: !pilot.aircraft_short ? undefined : shortDatafeed.map.aircraft_short.indexOf(pilot.aircraft_short),
+                dep: !pilot.departure ? undefined : shortDatafeed.map.airports.indexOf(pilot.departure),
+                arr: !pilot.arrival ? undefined : shortDatafeed.map.airports.indexOf(pilot.arrival),
+                rl: pilot.flight_rules,
+            });
+        }
+
+        for (const atc of radarStorage.vatsim.regularData!.controllers) {
+            if (atc.frequency && !shortDatafeed.map.frequencies.includes(atc.frequency)) shortDatafeed.map.frequencies.push(atc.frequency);
+            if (atc.frequencies?.length) {
+                for (const frequency of atc.frequencies) {
+                    if (!shortDatafeed.map.frequencies.includes(frequency)) shortDatafeed.map.frequencies.push(frequency);
+                }
+            }
+
+            shortDatafeed.controllers.push({
+                ci: atc.cid,
+                n: atc.name,
+                ca: atc.callsign,
+                fa: atc.facility,
+                ra: atc.rating,
+                atis: atc.text_atis,
+                lg: atc.logon_time,
+                bk: atc.booking,
+                isBk: atc.isBooking,
+                dp: atc.duplicated,
+                dpBy: atc.duplicatedBy,
+                fr: shortDatafeed.map.frequencies.indexOf(atc.frequency),
+                frq: atc.frequencies?.map(x => shortDatafeed.map.frequencies.indexOf(x)),
+            });
+        }
+
+        for (const atc of radarStorage.vatsim.regularData!.atis) {
+            if (atc.atis_code && !shortDatafeed.map.codes.includes(atc.atis_code)) shortDatafeed.map.codes.push(atc.atis_code);
+            if (atc.frequency && !shortDatafeed.map.frequencies.includes(atc.frequency)) shortDatafeed.map.frequencies.push(atc.frequency);
+            if (atc.frequencies?.length) {
+                for (const frequency of atc.frequencies) {
+                    if (!shortDatafeed.map.frequencies.includes(frequency)) shortDatafeed.map.frequencies.push(frequency);
+                }
+            }
+
+            shortDatafeed.atis.push({
+                ci: atc.cid,
+                n: atc.name,
+                ca: atc.callsign,
+                fa: atc.facility,
+                ra: atc.rating,
+                atis: atc.text_atis,
+                lg: atc.logon_time,
+                bk: atc.booking,
+                isBk: atc.isBooking,
+                dp: atc.duplicated,
+                dpBy: atc.duplicatedBy,
+                fr: shortDatafeed.map.frequencies.indexOf(atc.frequency),
+                frq: atc.frequencies?.map(x => shortDatafeed.map.frequencies.indexOf(x)),
+                co: shortDatafeed.map.codes.indexOf(atc.atis_code ?? ''),
+            });
+        }
+
+        for (const atc of radarStorage.vatsim.regularData!.observers) {
+            shortDatafeed.observers.push({
+                ci: atc.cid,
+                n: atc.name,
+                ca: atc.callsign,
+                frq: atc.frequencies?.map(x => shortDatafeed.map.frequencies.indexOf(x)),
+            });
+        }
+
+        radarStorage.vatsim.compactDatafeed = shortDatafeed;
+
         await new Promise<void>((resolve, reject) => {
             const timeout = setTimeout(() => reject(new Error('Redis publish Failed by timeout')), 5000);
             redisPublisher.publish('data', JSON.stringify({
@@ -573,6 +718,7 @@ defineCronJob('* * * * * *', async () => {
                 extendedPilotsMap: radarStorage.vatsim.extendedPilotsMap,
                 transceivers: radarStorage.vatsim.transceivers,
                 notam: radarStorage.vatsim.notam,
+                compactDatafeed: radarStorage.vatsim.compactDatafeed,
             } satisfies Omit<VatsimStorage, 'kafka' | 'sectorsDataset'>), err => {
                 clearTimeout(timeout);
                 if (err) return reject(err);

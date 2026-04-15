@@ -102,17 +102,6 @@ export function checkForVATSpy() {
                 location.reload();
             });
 
-            try {
-                await clientDB.vatspy.clear();
-                await clientDB.vatspy.bulkPut(Object.values(vatspy.data.features), Object.keys(vatspy.data.features));
-                await clientDB.vatspy.put(vatspy.version, 'version');
-            }
-            catch (e) {
-                console.error(e);
-                clientDB.delete();
-                location.reload();
-            }
-
             notRequired = false;
         }
 
@@ -135,17 +124,9 @@ export function checkForVATSpy() {
         // @ts-expect-error intended
         delete vatspy.data.airports;
 
-        // @ts-expect-error intended
-        delete vatspy.data.features;
-
         dataStore.vatspy.value = {
             version: vatspy.version,
             data: vatspy.data,
-            feature: async key => {
-                const result = await clientDB.vatspy.get(key);
-
-                return typeof result === 'object' ? result : null;
-            },
         };
         if (notRequired) return 'notRequired';
     });

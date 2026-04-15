@@ -36,21 +36,22 @@ export function setMapSectors({ source, firs, layer, labelsSource, labelsLayer }
             ? fir.uir ? 'uir' : 'fir'
             : 'empty';
 
-        const id: any = 'sector-' + String(fir.fir.icao) + String(fir.fir.callsign) + String(fir.fir.boundary) + String(sectorType);
+        const id: any = 'sector-' + String(fir.fir?.icao) + String(fir.fir?.callsign) + String(fir.feature.properties.id) + String(sectorType);
         activeIds.add(id);
 
         const existingFeature = getMapFeature('sector', source, id);
-        const isBooking = store.bookingOverride || controllers.every(x => x.booking);
+        const isBooking = store.bookingOverride || (!!controllers.length && controllers.every(x => x.booking));
         const isDuplicated = !!controllers.length && controllers.every(x => x.duplicated);
 
         if (existingFeature) {
             existingFeature.setProperties({
+                sectorType,
                 booked: isBooking,
                 duplicated: isDuplicated,
                 atc: controllers,
-                icao: fir.fir.icao,
+                icao: fir.fir?.icao ?? fir.feature.properties.id,
                 uir: fir.uir?.icao,
-                name: fir.uir?.name ?? fir.fir.name,
+                name: fir.uir?.name ?? fir.fir?.name ?? fir.feature.properties.id,
             });
         }
         else {
@@ -65,9 +66,9 @@ export function setMapSectors({ source, firs, layer, labelsSource, labelsLayer }
                 label: fir.feature.properties.label,
                 duplicated: isDuplicated,
                 atc: controllers,
-                icao: fir.fir.icao,
+                icao: fir.fir?.icao ?? fir.feature.properties.id,
                 uir: fir.uir?.icao,
-                name: fir.uir?.name ?? fir.fir.name,
+                name: fir.uir?.name ?? fir.fir?.name ?? fir.feature.properties.id,
                 isOceanic: fir.feature.properties.oceanic,
             });
             source.addFeature(feature);

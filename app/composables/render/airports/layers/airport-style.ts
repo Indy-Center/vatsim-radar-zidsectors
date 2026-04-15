@@ -217,7 +217,7 @@ export function setAirportStyle(layer: VectorLayer) {
                     else {
                         styleCache[styleCacheKey] = new Style({
                             image: new Icon({
-                                src: `/icons/atc/${ letter }${ booked ? '-booked' : '' }.png`,
+                                src: `/icons/atc/${ letter ?? 'A' }${ booked ? '-booked' : '' }.png`,
                                 width: width + (properties.selected ? 2 : 0),
                                 displacement: [offsetX, -width],
                                 declutterMode: 'none',

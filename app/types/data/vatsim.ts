@@ -231,6 +231,94 @@ export type VatsimLiveData = VatsimShortenedData & {
 
 export type VatsimLiveDataShort = Pick<VatsimLiveData, 'general' | 'pilots' | 'observers' | 'controllers' | 'atis' | 'prefiles' | 'bars' | 'notam'>;
 
+export type VatsimLiveCompactData = Omit<VatsimShortenedData, 'pilots' | 'controllers' | 'observers' | 'atis' | 'prefiles'> & VatsimLiveDataMap & {
+    keyedPilots?: Record<string, VatsimShortenedAircraft>;
+    keyedPrefiles?: Record<string, VatsimShortenedPrefile>;
+    notam: RadarNotam | null;
+};
+
+export type VatsimLiveCompactDataShort = Pick<VatsimLiveCompactData, 'general' | 'pilots' | 'observers' | 'controllers' | 'atis' | 'prefiles' | 'bars' | 'notam' | 'map'>;
+
+export type VatsimLiveDataMap = {
+    map: {
+        aircraft_faa: NonNullable<VatsimPilot['flight_plan']>['aircraft_faa'][];
+        aircraft_short: NonNullable<VatsimPilot['flight_plan']>['aircraft_short'][];
+        airports: string[];
+        frequencies: VatsimPilot['frequencies'];
+        status: VatsimExtendedPilot['status'][];
+        codes: string[];
+    };
+    pilots: {
+        ci: VatsimPilot['cid'];
+        n: VatsimPilot['name'];
+        ca: VatsimPilot['callsign'];
+        rp: VatsimPilot['pilot_rating'];
+        rm: VatsimPilot['military_rating'];
+        la: VatsimPilot['latitude'];
+        lo: VatsimPilot['longitude'];
+        al: VatsimPilot['altitude'];
+        gs: VatsimPilot['groundspeed'];
+        ts: VatsimPilot['transponder'];
+        hd: VatsimPilot['heading'];
+        qn: VatsimPilot['qnh_mb'];
+        frq: number[];
+        sim?: VatsimPilot['sim'];
+        // aircraft faa map
+        tfa?: number;
+        // aircraft short
+        tsh?: number;
+        // departure
+        dep?: number;
+        // arrival
+        arr?: number;
+        // diverted arrival
+        dva?: number;
+        // diverted origin
+        dvo?: number;
+        // status
+        s?: number;
+        dpd?: VatsimExtendedPilot['depDist'];
+        dpg?: VatsimExtendedPilot['toGoDist'];
+        // current airport
+        ap?: number;
+        rl?: VatsimPilotFlightPlan['flight_rules'];
+    }[];
+    controllers: {
+        ci: VatsimShortenedController['cid'];
+        n: VatsimShortenedController['name'];
+        ca: VatsimShortenedController['callsign'];
+        fa: VatsimShortenedController['facility'];
+        ra: VatsimShortenedController['rating'];
+        atis: VatsimShortenedController['text_atis'];
+        lg: VatsimShortenedController['logon_time'];
+        bk?: VatsimShortenedController['booking'];
+        isBk?: VatsimShortenedController['isBooking'];
+        dp?: VatsimShortenedController['duplicated'];
+        dpBy?: VatsimShortenedController['duplicatedBy'];
+        fr?: number;
+        frq?: number[];
+    }[];
+    observers: Pick<VatsimLiveDataMap['controllers'][0], 'ci' | 'n' | 'ca' | 'frq'>[];
+    atis: Array<VatsimLiveDataMap['controllers'][0] & {
+        // ATIS code map
+        co?: number;
+    }>;
+    prefiles: {
+        ci: VatsimPrefile['cid'];
+        n: VatsimPrefile['name'];
+        ca: VatsimPrefile['callsign'];
+        // aircraft faa map
+        tfa?: number;
+        // aircraft short
+        tsh?: number;
+        // departure
+        dep?: number;
+        // arrival
+        arr?: number;
+        rl?: VatsimPilotFlightPlan['flight_rules'];
+    }[];
+};
+
 export interface VatsimDivision {
     id: string;
     name: string;

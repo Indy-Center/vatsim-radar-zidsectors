@@ -16,9 +16,11 @@ const firsMapByIcao: Record<string, string[]> = {};
 const firsMapByCallsign: Record<string, string[]> = {};
 
 export interface FirFindResult {
-    fir: VatSpyData['firs'][0];
+    fir?: VatSpyData['firs'][0];
     feature: Feature<MultiPolygon, VatSpyDataProperties>;
 }
+
+const setVatspyBoundaries = new Set<string>();
 
 async function filterFirsForList(list: string[] | undefined, callsign: string) {
     if (!list) return [];
@@ -47,8 +49,11 @@ async function filterFirsForList(list: string[] | undefined, callsign: string) {
         if (word.length < maxStart) break;
         maxStart = word.length;
 
-        const features = await dataStore.vatspy.value?.feature(fir.boundary) ?? [];
+        const features = dataStore.vatspy.value?.data.features[fir.boundary] ?? [];
         if (!features.length) continue;
+
+        setVatspyBoundaries.add(fir.boundary);
+
         result.push({
             fir,
             feature: features.length === 1
@@ -68,16 +73,21 @@ async function findFirsForCallsign(callsign: string, prefix?: string) {
     return filterFirsForList(firsMapByIcao[prefix || callsign], callsign);
 }
 
-function addSector(context: DataUpdateContext, sector: FirFindResult, controller: VatsimShortenedController, uir?: DataSector['uir']) {
-    const sectorKey = sector.fir.callsign ? `${ sector.fir.callsign }-${ sector.fir.icao }` : sector.fir.icao;
+function addSector(context: DataUpdateContext, sector: FirFindResult, controller: VatsimShortenedController | null, uir?: DataSector['uir']) {
+    const sectorKey = !sector.fir
+        ? sector.feature.properties.id
+        : sector.fir.callsign
+            ? `${ sector.fir.callsign }-${ sector.fir.icao }`
+            : sector.fir.icao;
+
     const existingSector = context.sectors[sectorKey];
-    if (existingSector) existingSector.atc.push(controller);
-    else {
+    if (existingSector && controller) existingSector.atc.push(controller);
+    else if (!existingSector) {
         context.sectors[sectorKey] = {
             fir: sector.fir,
             uir,
             feature: sector.feature,
-            atc: [controller],
+            atc: controller ? [controller] : [],
         };
     }
 }
@@ -86,6 +96,8 @@ export async function updateControllers(context: DataUpdateContext) {
     const dataStore = useDataStore();
     const store = useStore();
     const facilities = useFacilitiesIds();
+
+    setVatspyBoundaries.clear();
 
     if (dataStore.vatspy.value && !dataStore.vatspy.value.data.uirs?.length) {
         dataStore.versions.value!.vatspy = '';
@@ -289,6 +301,16 @@ export async function updateControllers(context: DataUpdateContext) {
             if (!dataAirport) continue;
 
             dataAirport.atc.push({ ...controller, isATIS });
+        }
+    }
+
+    for (const boundary in dataStore.vatspy.value?.data.features) {
+        if (setVatspyBoundaries.has(boundary)) continue;
+
+        for (const feature of dataStore.vatspy.value?.data.features[boundary] ?? []) {
+            addSector(context, {
+                feature,
+            }, null);
         }
     }
 }

@@ -1,5 +1,17 @@
 # Changelog
 
+# [2.0.0-alpha.7.2]
+
+## Alpha changes
+
+- Fixed VATGlasses dynamic not working
+- Restored FIRs borders
+- Fixed some runways parsing
+
+## Performance Improvements
+
+- Reworked datafeed to be more compact
+
 # [2.0.0-alpha.7.1]
 
 ## Alpha Changes
@@ -29,7 +41,6 @@ Sectors and airports list render has been reworked from scratch. Please take a m
 
 - Significantly improved performance for VATGlasses mode
 - Significantly improved memory usage for VATGlasses mode, not consuming it for countries that are not rendered
-- Significantly improved memory usage for VATSpy data
 - Reduced traffic used on regular updates
 
 ## Technical changes

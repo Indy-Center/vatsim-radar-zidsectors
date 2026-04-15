@@ -12,7 +12,7 @@ import type { VatglassesDynamicData } from '~/utils/server/storage';
 import { initNavigraph } from '~/utils/server/navigraph/db';
 import { updateSimAware } from '~/utils/server/vatsim/simaware';
 import { updateVatglassesData } from '~/utils/server/vatglasses';
-import { defaultRedis, getRedis, getRedisData, getRedisSync, setRedisData } from '~/utils/server/redis';
+import { getRedis, getRedisData, getRedisSync, setRedisData } from '~/utils/server/redis';
 import type { VatsimDivision, VatsimEvent, VatsimSubDivision } from '~/types/data/vatsim';
 import {
     updateAchievements,
@@ -41,13 +41,6 @@ async function basicTasks() {
     await defineCronJob('15 * * * *', updateSimAware).catch(console.error);
     await defineCronJob('15 */2 * * *', updateVatglassesData).catch(console.error);
     await defineCronJob('15 * * * *', updateVatSpy).catch(console.error);
-
-    redisSubscriber.subscribe('vatglassesDynamic');
-    redisSubscriber.on('message', (channel, message) => {
-        if (channel === 'vatglassesDynamic') {
-            radarStorage.vatglasses.dynamicData = JSON.parse(message);
-        }
-    });
 }
 
 interface VatsimStatus {
@@ -81,21 +74,28 @@ const zuluTime = new Intl.DateTimeFormat(['en-GB'], {
     minute: '2-digit',
 });
 
-let latestVatglassesData = '';
+let previousDynamicData = '';
 export async function updateVatglassesDynamic() {
     try {
         const response = await $fetch<VatglassesDynamicData>('https://api3.vatglasses.uk/live/activeownership', {
             timeout: 1000 * 30,
         });
 
-        latestVatglassesData = JSON.stringify({
+        const data = {
             data: response,
             version: Date.now().toString(),
-        });
-        defaultRedis.publish('vatglassesDynamic', latestVatglassesData);
+        };
+
+        const responseText = JSON.stringify(response);
+
+        if (responseText === previousDynamicData) return;
+
+        previousDynamicData = responseText;
+
+        await setRedisData('data-vatglasses-dynamic', data, 1000 * 60 * 5);
     }
     catch (error) {
-        console.error('Error in cron job:', error);
+        console.error('Error in VG job:', error);
     }
 }
 
@@ -129,7 +129,6 @@ async function vatsimTasks() {
         setRedisData('data-events', myData.data.filter(e => new Date(e.start_time) < inFourWeeks), 1000 * 60 * 60);
     }).catch(console.error);
 
-    await defineCronJob('15 0 * * *', fetchDivisions).catch(console.error);
     await defineCronJob('15 0 * * *', updateAchievements).catch(console.error);
     await defineCronJob('* * * * * *', updateTransceivers).catch(console.error);
     await defineCronJob('*/30 * * * * *', updateVatglassesDynamic).catch(console.error);
@@ -213,6 +212,7 @@ async function vatsimTasks() {
 
         radarStorage.vatsimNotam = notam ?? null;
     }).catch(console.error);
+    await defineCronJob('15 0 * * *', fetchDivisions).catch(console.error);
 }
 
 let s3: S3 | undefined;
@@ -410,6 +410,10 @@ export async function updateRedisData() {
     radarStorage.vatsimStatic.tracks = (await getRedisData('data-nattrak')) ?? radarStorage.vatsimStatic.tracks;
     radarStorage.vatsimStatic.achievements = (await getRedisData('data-achievements')) ?? radarStorage.vatsimStatic.achievements;
     radarStorage.patreonInfo = (await getRedisData('data-patreon')) ?? radarStorage.patreonInfo;
+    radarStorage.vatglasses.dynamicData = await getRedisData('data-vatglasses-dynamic') ?? {
+        version: '',
+        data: null,
+    };
     radarStorage.navigraphSetUp = !!await getRedisSync('navigraph-ready');
 }
 
@@ -453,6 +457,12 @@ export async function setupRedisDataFetch() {
             }
             else if (message === 'navigraph-data') {
                 radarStorage.navigraphSetUp = !!await getRedisSync('navigraph-ready');
+            }
+            else if (message === 'vatglasses-dynamic') {
+                radarStorage.vatglasses.dynamicData = await getRedisData('data-vatglasses-dynamic') ?? {
+                    version: '',
+                    data: null,
+                };
             }
         }
     });

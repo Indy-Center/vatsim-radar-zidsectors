@@ -3,10 +3,11 @@ import type {
     VatsimData,
     VatsimDivision,
     VatsimEvent, VatsimExtendedPilot,
-    VatsimLiveData, VatsimLiveDataShort, VatsimMandatoryData,
+    VatsimMandatoryData,
     VatsimShortenedData,
     VatsimSubDivision,
-    VatsimBooking, VatsimNattrak, VatsimTransceiverFrequency, VatsimAchievementList,
+    VatsimBooking, VatsimNattrak, VatsimTransceiverFrequency, VatsimAchievementList, VatsimLiveDataMap,
+    VatsimLiveCompactData, VatsimLiveCompactDataShort, VatsimLiveDataShort, VatsimLiveData,
 } from '~/types/data/vatsim';
 import type { VatDataVersions } from '~/types/data';
 import type { Feature, FeatureCollection, Geometry, MultiPolygon, Polygon } from 'geojson';
@@ -221,6 +222,9 @@ export interface VatsimStorage {
     data: VatsimData | null;
     regularData: VatsimShortenedData | null;
     mandatoryData: VatsimMandatoryData | null;
+
+    compactDatafeed: VatsimLiveDataMap | null;
+
     extendedPilots: VatsimExtendedPilot[];
     extendedPilotsMap: { [key: string]: VatsimExtendedPilot };
     transceivers: Record<string, VatsimTransceiverFrequency[]>;
@@ -306,6 +310,7 @@ export const radarStorage: RadarStorage = {
         data: null,
         regularData: null,
         mandatoryData: null,
+        compactDatafeed: null,
         extendedPilots: [],
         extendedPilotsMap: {},
         transceivers: {},
@@ -387,4 +392,38 @@ export function getServerVatsimLiveShortData() {
         bars: radarStorage.vatsim.regularData!.bars,
         notam: radarStorage.vatsim.notam,
     } satisfies VatsimLiveDataShort;
+}
+
+export function getServerVatsimCompactData(): VatsimLiveCompactData {
+    const storage = radarStorage;
+
+    return {
+        general: storage.vatsim.regularData!.general,
+        pilots: storage.vatsim.compactDatafeed?.pilots ?? [],
+        observers: storage.vatsim.compactDatafeed?.observers ?? [],
+        controllers: radarStorage.vatsim.compactDatafeed?.controllers ?? [],
+        atis: radarStorage.vatsim.compactDatafeed?.atis ?? [],
+        prefiles: storage.vatsim.compactDatafeed?.prefiles ?? [],
+        map: radarStorage.vatsim.compactDatafeed?.map ?? {} as VatsimLiveCompactData['map'],
+        facilities: storage.vatsim.regularData!.facilities,
+        ratings: storage.vatsim.regularData!.ratings,
+        pilot_ratings: storage.vatsim.regularData!.pilot_ratings,
+        military_ratings: storage.vatsim.regularData!.military_ratings,
+        bars: radarStorage.vatsim.regularData!.bars,
+        notam: storage.vatsim.notam,
+    };
+}
+
+export function getServerVatsimCompactShortData() {
+    return {
+        general: radarStorage.vatsim.data!.general,
+        pilots: radarStorage.vatsim.compactDatafeed?.pilots ?? [],
+        observers: radarStorage.vatsim.compactDatafeed?.observers ?? [],
+        controllers: radarStorage.vatsim.compactDatafeed?.controllers ?? [],
+        atis: radarStorage.vatsim.compactDatafeed?.atis ?? [],
+        prefiles: radarStorage.vatsim.compactDatafeed?.prefiles ?? [],
+        map: radarStorage.vatsim.compactDatafeed?.map ?? {} as VatsimLiveCompactData['map'],
+        bars: radarStorage.vatsim.regularData!.bars,
+        notam: radarStorage.vatsim.notam,
+    } satisfies VatsimLiveCompactDataShort;
 }

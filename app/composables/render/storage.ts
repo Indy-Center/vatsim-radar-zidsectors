@@ -3,7 +3,8 @@ import type { VatSpyAirport, VatSpyAPIData, VatSpyData, VatSpyDataProperties } f
 import type {
     VatsimBooking,
     VatsimExtendedPilot,
-    VatsimLiveData, VatsimLiveDataShort, VatsimMandatoryConvertedData, VatsimMandatoryData, VatsimMandatoryPilot,
+    VatsimLiveCompactDataShort, VatsimLiveData, VatsimLiveDataShort,
+    VatsimMandatoryConvertedData, VatsimMandatoryData, VatsimMandatoryPilot,
     VatsimMemberStats, VatsimNattrakClient,
     VatsimShortenedAircraft,
     VatsimShortenedController,
@@ -187,15 +188,14 @@ export interface DataAirport {
 }
 
 export interface DataSector {
-    fir: VatSpyData['firs'][number];
+    fir?: VatSpyData['firs'][number];
     uir?: VatSpyData['uirs'][number];
     feature: Feature<MultiPolygon, VatSpyDataProperties>;
     atc: VatsimShortenedController[];
 }
 
 export type DataStoreVatspy = Omit<VatSpyAPIData, 'data'> & {
-    data: Pick<VatSpyAPIData['data'], 'id' | 'keyAirports' | 'countries' | 'firs' | 'uirs'>;
-    feature: (boundary: string) => Promise<Feature<MultiPolygon, VatSpyDataProperties>[] | null>;
+    data: Pick<VatSpyAPIData['data'], 'id' | 'keyAirports' | 'countries' | 'firs' | 'uirs' | 'features'>;
 };
 
 export interface UseDataStore {
@@ -327,7 +327,101 @@ export function useDataStore(): UseDataStore {
 }
 
 // Short data
-export function setVatsimDataStore(vatsimData: VatsimLiveDataShort) {
+export function setVatsimDataStore(_vatsimData: VatsimLiveCompactDataShort) {
+    const vatsimData: VatsimLiveDataShort = {
+        ..._vatsimData,
+        pilots: [],
+        controllers: [],
+        observers: [],
+        atis: [],
+        prefiles: [],
+    };
+
+    for (const pilot of _vatsimData.pilots) {
+        vatsimData.pilots.push({
+            cid: pilot.ci,
+            name: pilot.n,
+            callsign: pilot.ca,
+            pilot_rating: pilot.rp,
+            military_rating: pilot.rm,
+            latitude: pilot.la,
+            longitude: pilot.lo,
+            altitude: pilot.al,
+            groundspeed: pilot.gs,
+            transponder: pilot.ts,
+            heading: pilot.hd,
+            qnh_mb: pilot.qn,
+            frequencies: pilot.frq.map(x => _vatsimData.map.frequencies[x]),
+            sim: pilot.sim,
+            aircraft_faa: _vatsimData.map.aircraft_faa[pilot.tfa ?? -1],
+            aircraft_short: _vatsimData.map.aircraft_short[pilot.tsh ?? -1],
+            departure: _vatsimData.map.airports[pilot.dep ?? -1],
+            arrival: _vatsimData.map.airports[pilot.arr ?? -1],
+            diverted_arrival: _vatsimData.map.airports[pilot.dva ?? -1],
+            diverted_origin: _vatsimData.map.airports[pilot.dvo ?? -1],
+            status: _vatsimData.map.status[pilot.s ?? -1],
+            depDist: pilot.dpd,
+            toGoDist: pilot.dpg,
+            airport: _vatsimData.map.airports[pilot.ap ?? -1],
+            flight_rules: pilot.rl,
+        });
+    }
+
+    for (const pilot of _vatsimData.prefiles) {
+        vatsimData.prefiles.push({
+            cid: pilot.ci,
+            name: pilot.n,
+            callsign: pilot.ca,
+            flight_rules: pilot.rl,
+        });
+    }
+
+    for (const atc of _vatsimData.controllers) {
+        vatsimData.controllers.push({
+            cid: atc.ci,
+            name: atc.n,
+            callsign: atc.ca,
+            facility: atc.fa,
+            rating: atc.ra,
+            text_atis: atc.atis,
+            logon_time: atc.lg,
+            booking: atc.bk,
+            isBooking: atc.isBk,
+            duplicated: atc.dp,
+            duplicatedBy: atc.dpBy,
+            frequency: _vatsimData.map.frequencies[atc.fr ?? -1],
+            frequencies: atc.frq?.map(x => _vatsimData.map.frequencies[x]),
+        });
+    }
+
+    for (const atc of _vatsimData.observers) {
+        vatsimData.observers.push({
+            cid: atc.ci,
+            name: atc.n,
+            callsign: atc.ca,
+            frequencies: atc.frq?.map(x => _vatsimData.map.frequencies[x]),
+        });
+    }
+
+    for (const atc of _vatsimData.atis) {
+        vatsimData.atis.push({
+            cid: atc.ci,
+            name: atc.n,
+            callsign: atc.ca,
+            facility: atc.fa,
+            rating: atc.ra,
+            text_atis: atc.atis,
+            logon_time: atc.lg,
+            booking: atc.bk,
+            isBooking: atc.isBk,
+            duplicated: atc.dp,
+            duplicatedBy: atc.dpBy,
+            frequency: _vatsimData.map.frequencies[atc.fr ?? -1],
+            frequencies: atc.frq?.map(x => _vatsimData.map.frequencies[x]),
+            atis_code: _vatsimData.map.codes[atc.co ?? -1],
+        });
+    }
+
     const filteredControllers = filterVatsimControllers(vatsimData.controllers, vatsimData.atis);
 
     for (const key in vatsimData) {
@@ -343,8 +437,10 @@ export function setVatsimDataStore(vatsimData: VatsimLiveDataShort) {
             continue;
         }
 
-        // @ts-expect-error Dynamic assignment
-        data[key].value = vatsimData[key];
+        if (key in data) {
+            // @ts-expect-error Dynamic assignment
+            data[key].value = vatsimData[key];
+        }
     }
 
     data.keyedPilots.value = Object.fromEntries(vatsimData.pilots.map(pilot => [pilot.cid.toString(), {
