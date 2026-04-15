@@ -489,6 +489,7 @@ export function aircraftCoordsToPixel(map: Map, aircraft: VatsimMandatoryPilot):
 
 export const skipObserver = computed(() => useCookie<boolean>('observer-skip', {
     path: '/',
+    sameSite: 'none',
     secure: true,
     maxAge: 60 * 60 * 24 * 365,
 }));
