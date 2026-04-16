@@ -326,6 +326,7 @@ import MapMinifiedOverlays from '~/components/map/overlays/MapMinifiedOverlays.v
 import { isVatGlassesActive } from '~/utils/data/vatglasses';
 import { updateControllersRender } from '~/composables/render/update';
 import { runwaysState } from '~/composables/render/update/vatglasses';
+import { debugControllers } from '~/composables/render/update/utils';
 
 defineProps({
     mode: {
@@ -1077,7 +1078,7 @@ await setupDataFetch({
 
 const vgLevel = computed(() => store.localSettings.vatglassesLevel);
 
-useUpdateCallback(['short', isVatGlassesActive, vgLevel, runwaysState], () => {
+useUpdateCallback(['short', isVatGlassesActive, vgLevel, runwaysState, debugControllers], () => {
     updateControllersRender();
 }, {
     immediate: true,

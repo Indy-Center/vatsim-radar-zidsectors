@@ -57,6 +57,7 @@ interface IUserLocalSettings {
     location: Coordinate;
     zoom: number;
     vatglassesLevel: number;
+    debugMode: boolean;
     featuredDefaultBookmarks: boolean;
     skipBookmarkAnimation: boolean;
     eventsLocalTimezone: boolean;

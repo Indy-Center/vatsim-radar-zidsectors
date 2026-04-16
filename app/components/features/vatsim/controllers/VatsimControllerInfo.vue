@@ -7,10 +7,10 @@
         <div class="atc_content">
             <ui-chip
                 v-if="showFacility"
-                :atc-facility="controller.isATIS ? -1 : controller.facility"
+                :atc-facility="isATIS ? -1 : controller.facility"
                 class="atc_facility"
             >
-                {{ controller.isATIS ? 'ATIS' : controller.facility === -2 ? 'CTAF' : dataStore.vatsim.data.facilities.value.find(x => x.id === controller.facility)?.short }}
+                {{ isATIS ? 'ATIS' : controller.facility === -2 ? 'CTAF' : dataStore.vatsim.data.facilities.value.find(x => x.id === controller.facility)?.short }}
             </ui-chip>
             <ui-text
                 class="atc_callsign"
@@ -179,7 +179,11 @@ const copiedFor = ref('');
 const store = useStore();
 
 const notTunedUp = computed(() => {
-    return props.controller?.rating && !props.controller.isATIS && (!props.controller?.frequencies?.length || (props.controller.frequencies?.some(x => x[3] === '.') && !props.controller.frequencies?.some(x => x === props.controller.frequency)));
+    return props.controller?.rating && !isATIS.value && (!props.controller?.frequencies?.length || (props.controller.frequencies?.some(x => x[3] === '.') && !props.controller.frequencies?.some(x => x === props.controller.frequency)));
+});
+
+const isATIS = computed(() => {
+    return props.controller?.isATIS || props.controller?.callsign.endsWith('ATIS');
 });
 
 const handleClick = () => {

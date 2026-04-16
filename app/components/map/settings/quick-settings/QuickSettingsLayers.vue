@@ -271,6 +271,15 @@
                 When enabled, those aircraft are always excluded<br> from dep list when on ground
             </template>
         </ui-toggle>
+        <ui-toggle
+            :model-value="!!store.localSettings.debugMode"
+            @update:modelValue="setUserLocalSettings({ debugMode: $event })"
+        >
+            Debug mode
+            <template #description>
+                Allows to use VATGlasses beta datafeed, test parse flight plans, and add fake ATCs
+            </template>
+        </ui-toggle>
 
         <popup-fullscreen v-model="resetActive">
             <template #title>

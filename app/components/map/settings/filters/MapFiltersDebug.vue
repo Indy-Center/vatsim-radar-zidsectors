@@ -1,8 +1,9 @@
 <template>
     <div class="debug __info-sections">
         <map-filters-debug-clear
+            v-if="isDebug"
             data="all"
-            @click="controllers = []"
+            @click="debugControllers = []"
         >
             Clear All
         </map-filters-debug-clear>
@@ -20,12 +21,12 @@
             <map-filters-debug-clear
                 data="controllers"
                 type="primary"
-                @click="controllers = []"
+                @click="debugControllers = []"
             />
         </ui-button-group>
         <div class="debug_atc">
             <div
-                v-for="(controller, index) in controllers"
+                v-for="(controller, index) in debugControllers"
                 :key="controller.cid+index"
                 class="debug_atc_item"
             >
@@ -36,7 +37,7 @@
                     <ui-button
                         icon-width="12px"
                         size="S"
-                        @click="activeController = { ...controller }"
+                        @click="activeController = { default: false, ...controller }"
                     >
                         <template #icon>
                             <edit-icon/>
@@ -86,7 +87,10 @@
         <ui-block-title remove-margin>
             Data
         </ui-block-title>
-        <div class="debug_data-container __info-sections">
+        <div
+            v-if="isDebug"
+            class="debug_data-container __info-sections"
+        >
             <div
                 v-for="key in ['vatspy', 'simaware', 'vatglasses'] as DataKey[]"
                 :key
@@ -174,6 +178,12 @@
                 </div>
             </div>
         </div>
+        <ui-notification
+            v-else
+            type="info"
+        >
+            VATSpy, SimAware and VATGlasses data debug is only supported in local setup
+        </ui-notification>
         <ui-block-title remove-margin>
             Flight plan
         </ui-block-title>
@@ -209,6 +219,9 @@ import UiInputText from '~/components/ui/inputs/UiInputText.vue';
 import MapFiltersDebugClear from '~/components/map/settings/filters/MapFiltersDebugClear.vue';
 import PopupFullscreen from '~/components/popups/PopupFullscreen.vue';
 import MapFiltersDebugUpload from '~/components/map/settings/filters/MapFiltersDebugUpload.vue';
+import UiNotification from '~/components/ui/data/UiNotification.vue';
+import { debugControllers } from '~/composables/render/update/utils';
+import { getFacilityByCallsign } from '~/utils/shared/vatsim';
 
 const files = reactive({
     vatspy: {
@@ -230,6 +243,8 @@ const flightPlan = reactive({
     plan: '',
 });
 
+const isDebug = useIsDebug();
+
 export interface VatsimControllerWithField extends VatsimController {
     default: boolean;
 }
@@ -249,15 +264,13 @@ const getDefaultController = (): VatsimControllerWithField => ({
     default: true,
 });
 
-const { data: controllers, refresh } = await useAsyncData('debug-controllers', () => $fetch<VatsimControllerWithField[]>('/api/data/custom/controllers'), { deep: true });
-
 const dataStore = useDataStore();
 const mapStore = useMapStore();
 
 async function parse() {
     const mapCenter = mapStore.center;
 
-    dataStore.navigraphWaypoints.value.test = {
+    dataStore.navigraphWaypoints.value[1] = {
         // @ts-expect-error this data is ok enough
         pilot: {
             callsign: 'test',
@@ -270,6 +283,7 @@ async function parse() {
             latitude: mapCenter![1],
         },
         full: true,
+        coordinates: [mapCenter![0], mapCenter![1]],
         waypoints: await getFlightPlanWaypoints({
             flightPlan: flightPlan.plan,
             departure: flightPlan.departure,
@@ -327,29 +341,19 @@ const activeController = ref<VatsimControllerWithField | null>(null);
 const isDisabledControllerSave = computed(() => !activeController.value ||
     !activeController.value.name ||
     !activeController.value.callsign ||
-    controllers.value?.some(x => x.callsign === activeController.value!.callsign && x.cid !== activeController.value!.cid));
+    debugControllers.value?.some(x => x.callsign === activeController.value!.callsign && x.cid !== activeController.value!.cid));
 const saveController = async () => {
-    await $fetch('/api/data/custom/controllers', {
-        body: [
-            {
-                ...activeController.value!,
-                default: false,
-                text_atis: activeController.value!.text_atis!.filter(x => !!x),
-            },
-            ...controllers.value!.filter(x => x.cid !== activeController.value!.cid),
-        ],
-        method: 'POST',
+    debugControllers.value = debugControllers.value.filter(x => x.callsign !== activeController.value!.callsign);
+    debugControllers.value.push({
+        ...activeController.value!,
+        facility: getFacilityByCallsign(activeController.value!.callsign),
+        text_atis: activeController.value!.text_atis!.filter(x => !!x),
     });
+    triggerRef(debugControllers);
     activeController.value = null;
-    await refresh();
 };
 const deleteController = async (cid: number) => {
-    await $fetch('/api/data/custom/controllers', {
-        body: controllers.value!.filter(x => x.cid !== cid),
-        method: 'POST',
-    });
-    activeController.value = null;
-    await refresh();
+    debugControllers.value = debugControllers.value.filter(x => x.cid !== cid);
 };
 const getFromPr = async (type: Exclude<DataKey, 'vatglasses'>) => {
     const id = prs[type];
@@ -361,7 +365,6 @@ const getFromPr = async (type: Exclude<DataKey, 'vatglasses'>) => {
         prs[type] = true;
         await sleep(2000);
         prs[type] = null;
-        refresh();
     }
     catch (e) {
         console.error(e);

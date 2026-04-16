@@ -1,5 +1,15 @@
 # Changelog
 
+# [2.0.0-alpha.7.3]
+
+## Alpha changes
+
+- Fixed some CTR controllers not showing correctly
+
+## Improvements and changes
+
+- Added local debug menu to test route parsing, add fake ATCs and enable beta VATGlasses feed, available in Settings → Debug mode
+
 # [2.0.0-alpha.7.2]
 
 ## Alpha changes

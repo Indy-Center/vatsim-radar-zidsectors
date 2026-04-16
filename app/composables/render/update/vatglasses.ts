@@ -10,7 +10,7 @@ import type {
     VatglassesData,
     VatglassesSector,
 } from '~/utils/server/storage';
-import { updateAirportAtisConfig } from '~/composables/render/update/utils';
+import { debugControllers, updateAirportAtisConfig } from '~/composables/render/update/utils';
 import type { DataUpdateContext } from '~/composables/render/update/index';
 import type { Feature as TurfFeature, Polygon as TurfPolygon, Position } from 'geojson';
 import { polygon } from '@turf/helpers';
@@ -196,7 +196,12 @@ export async function updateVATGlasses(context: DataUpdateContext) {
         };
     }
 
-    const dataControllers = dataStore.vatsim.data.controllers.value;
+    const dataControllers = dataStore.vatsim.data.controllers.value.slice(0);
+
+    if (debugControllers.value?.length) {
+        dataControllers.push(...debugControllers.value);
+    }
+
     const foundControllers: Record<string, Record<string, VatsimShortenedController[]>> = {};
     const foundAirspaces: VatglassesActiveAirspaces = {};
     const finalPositions: VatglassesActivePositions = {};

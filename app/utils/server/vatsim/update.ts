@@ -1,5 +1,5 @@
 import { getTransceiverData } from '~/utils/server/vatsim/index';
-import { useFacilitiesIds, getFacilityByCallsign } from '~/utils/data/vatsim';
+import { useFacilitiesIds } from '~/utils/data/vatsim';
 import type { RadarDataAirline, RadarDataAirlineAll, RadarDataAirlinesList } from '~/utils/server/storage';
 import { radarStorage } from '~/utils/server/storage';
 import { wss } from '~/utils/server/vatsim/ws';
@@ -15,7 +15,7 @@ import type {
     VatsimShortenedController, VatsimController, VatsimNattrak, VatsimAchievementList, VatsimPrefile,
 } from '~/types/data/vatsim';
 import { getAircraftIcon } from '~/utils/icons';
-import { getPilotTrueAltitude } from '~/utils/shared/vatsim';
+import { getFacilityByCallsign, getPilotTrueAltitude } from '~/utils/shared/vatsim';
 import {
     calculateArrivalTime,
     calculateDistanceInNauticalMiles,

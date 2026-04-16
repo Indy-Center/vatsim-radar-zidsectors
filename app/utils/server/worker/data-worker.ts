@@ -17,7 +17,6 @@ import { getPlanInfluxDataForPilots, getShortInfluxDataForPilots } from '~/utils
 import { getRedis } from '~/utils/server/redis';
 import { defineCronJob, getVATSIMIdentHeaders } from '~/utils/server';
 import { initWholeBunchOfBackendTasks, navigraphUpdating } from '~/utils/server/tasks';
-import { getLocalText, isDebug } from '~/utils/server/debug';
 import { prisma } from '~/utils/server/prisma';
 
 import type { RadarNotam } from '~/utils/shared/vatsim';
@@ -301,13 +300,6 @@ defineCronJob('* * * * * *', async () => {
                 deleted: undefined,
             });
         });
-
-        const localControllers = isDebug() && getLocalText('controllers.json');
-
-        if (localControllers) {
-            radarStorage.vatsim.data.controllers = radarStorage.vatsim.data.controllers.concat(JSON.parse(localControllers)).filter(x => !x.callsign.endsWith('ATIS'));
-            radarStorage.vatsim.data.atis = radarStorage.vatsim.data.atis.concat(JSON.parse(localControllers)).filter(x => x.callsign.endsWith('ATIS'));
-        }
 
         const length = radarStorage.vatsim.data!.controllers.length;
 

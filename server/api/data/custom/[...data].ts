@@ -19,8 +19,6 @@ export default defineEventHandler(async event => {
 
     const method = event.method;
 
-    if (method === 'GET' && key === 'controllers') return JSON.parse(getLocalText('controllers.json') ?? '[]');
-
     if (method === 'DELETE') {
         if (key === 'vatspy') {
             removeLocalFile('vatspy.geojson');

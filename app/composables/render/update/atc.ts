@@ -6,6 +6,7 @@ import { getTraconPrefixes, getTraconSuffix } from '~/utils/shared/vatsim';
 import type { SimAwareDataFeature } from '~/utils/server/storage';
 import type { DataAirport, DataSector } from '~/composables/render/storage';
 import { checkForVATSpy } from '~/composables/init';
+import { debugControllers } from '~/composables/render/update/utils';
 
 export const callsignSplitRegex = /_+/gm;
 
@@ -33,6 +34,11 @@ async function filterFirsForList(list: string[] | undefined, callsign: string) {
         symbols: number;
     }[] = [];
 
+    let callsignSplit = callsign.split(callsignSplitRegex);
+    callsignSplit = callsignSplit.slice(0, callsignSplit.length - 1);
+
+    const callsignMiddle = callsignSplit.join('_');
+
     let maxStart = 0;
 
     for (const item of list) {
@@ -46,8 +52,12 @@ async function filterFirsForList(list: string[] | undefined, callsign: string) {
             if (!callsign.startsWith(word)) break;
         }
 
-        if (word.length < maxStart) break;
-        maxStart = word.length;
+        let length = word.length;
+
+        if ((fir.callsign || fir.icao) === callsignMiddle) length = 100;
+
+        if (length < maxStart) break;
+        maxStart = length;
 
         const features = dataStore.vatspy.value?.data.features[fir.boundary] ?? [];
         if (!features.length) continue;
@@ -59,7 +69,7 @@ async function filterFirsForList(list: string[] | undefined, callsign: string) {
             feature: features.length === 1
                 ? features[0]
                 : features.find(x => x.properties.oceanic === callsign.endsWith('_FSS')) ?? features[0],
-            symbols: word.length,
+            symbols: length,
         });
     }
 
@@ -127,10 +137,8 @@ export async function updateControllers(context: DataUpdateContext) {
                 // firsMapByBoundary[boundary] ??= [];
                 // firsMapByBoundary[boundary].push(key);
 
-                if (callsign) {
-                    firsMapByCallsign[callsign] ??= [];
-                    firsMapByCallsign[callsign].push(key);
-                }
+                firsMapByCallsign[callsign ?? icao] ??= [];
+                firsMapByCallsign[callsign ?? icao].push(key);
             }
 
             // Cleanup
@@ -162,6 +170,10 @@ export async function updateControllers(context: DataUpdateContext) {
             isBooking: true,
         } satisfies VatsimShortenedController)),
     ];
+
+    if (debugControllers.value?.length) {
+        controllers.push(...debugControllers.value);
+    }
 
     for (const controller of controllers) {
         const freq = parseFloat(controller.frequency || '0');
