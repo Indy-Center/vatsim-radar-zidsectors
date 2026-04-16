@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import type { Extent } from 'ol/extent';
-import type { VatsimAchievementUser, VatsimExtendedPilot, VatsimPrefile } from '~/types/data/vatsim';
+import type { VatsimAchievementUser, VatsimExtendedPilot, VatsimPrefile, IpfsUser } from '~/types/data/vatsim';
 import { useStore } from '~/store/index';
 import { findAtcByCallsign } from '~/composables/atc';
 import type { VatsimAirportData } from '~~/server/api/data/vatsim/airport/[icao]';
@@ -29,6 +29,7 @@ export interface StoreOverlayPilot extends StoreOverlayDefault {
     data: {
         pilot: VatsimExtendedPilot;
         achievements?: VatsimAchievementUser[];
+        ipfs?: IpfsUser;
         airport?: VatsimAirportInfo;
         tracked?: boolean;
         fullRoute?: boolean;
@@ -167,6 +168,7 @@ export const useMapStore = defineStore('map', {
 
                 const achievementsRequest = $fetch<VatsimAchievementUser[]>(`/api/data/vatsim/pilot/${ cid }/achievements`);
                 const pilot = await $fetch<VatsimExtendedPilot>(`/api/data/vatsim/pilot/${ cid }`);
+                const ipfsRequest = (pilot.status === 'depGate' || pilot.status === 'depTaxi') && $fetch<IpfsUser>(`/api/data/vatsim/pilot/${ cid }/ipfs`).catch(() => {});
                 this.overlays = this.overlays.filter(x => x.type !== 'pilot' || x.sticky || store.user?.settings.toggleAircraftOverlays);
                 if (tracked) this.overlays.filter(x => x.type === 'pilot').forEach(x => (x as StoreOverlayPilot).data.tracked = false);
                 await nextTick();
@@ -191,6 +193,7 @@ export const useMapStore = defineStore('map', {
                 });
 
                 achievementsRequest.then(result => overlay.data.achievements = result).catch(console.error);
+                if (ipfsRequest) ipfsRequest.then(result => result && (overlay.data.ipfs = result)).catch(console.error);
                 return overlay;
             }
             finally {

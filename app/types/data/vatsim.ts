@@ -343,3 +343,51 @@ export interface VatsimAchievementUser extends VatsimAchievement {
     description?: string;
 }
 
+export enum ViffStatus {
+    // Flight Suspended due to Not Reported As Airborne.
+    FLS_NRA = 'FLS-NRA',
+    // Flight Suspended Triggered by CDM.
+    FLS_CDM = 'FLS-CDM',
+    // Flight Suspended due to Mandatory Route.
+    FLS_MR = 'FLS-MR',
+    // Flight Suspended due to Ground Stop.
+    FLS_GS = 'FLS-GS',
+    // Flight is de-suspended
+    DES = 'DES',
+    // Slot (CTOT) Allocated - Slot Allocation Message.
+    SAM = 'SAM',
+    // Slot (CTOT) updated - Slot Revision Message.
+    SRM = 'SRM',
+    // Slot (CTOT) Not applicable anymore - Slot Cancellation.
+    SLC = 'SLC',
+    // Flight is already in movement. Automatically set when AOBT is set.
+    ATC_ACTIV = 'ATC_ACTIV',
+}
+
+export interface IpfsUser {
+    departure: string;
+    eobt: string;
+    tobt: string;
+    obt: string;
+    reqTobt: string;
+    taxi: number;
+    ctot: string;
+    aobt: string;
+    atot: string;
+    eta: string;
+    onTime: '0' | '1';
+    atfcmStatus: ViffStatus;
+    mostPenalizingAirspace: string;
+    cdmData: {
+        tobt: string;
+        tsat: string;
+        ttot: string;
+        ctot: string;
+        reason: string;
+        asrt: string;
+        depInfo: string;
+        reqAsrt: string;
+        reqTobt: string;
+        reqTobtType: string;
+    };
+}
