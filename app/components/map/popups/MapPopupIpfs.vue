@@ -220,7 +220,7 @@ const blocks = computed(() => {
         });
     }
 
-    if (props.ipfs.cdmData.ctot) {
+    if (props.ipfs.ctot) {
         const hours = parseInt(props.ipfs?.ctot.slice(0, 2));
         let minutes = parseInt(props.ipfs?.ctot.slice(2, 4));
         minutes -= props.ipfs.taxi ?? 0;
