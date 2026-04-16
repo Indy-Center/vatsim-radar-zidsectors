@@ -2796,6 +2796,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@nodable/entities@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "@nodable/entities@npm:1.1.0"
+  checksum: 10c0/ff9b8d515d08ff8a5b83f587bc4a2482508250ac051d0967a8c77da3813cc7aae23d8ce8654c97a948536ca73387300ede734ff7c8ae61461220dca09a2911ec
+  languageName: node
+  linkType: hard
+
 "@nodelib/fs.scandir@npm:2.1.5":
   version: 2.1.5
   resolution: "@nodelib/fs.scandir@npm:2.1.5"
@@ -6861,13 +6868,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@zarrita/storage@npm:^0.1.4":
-  version: 0.1.4
-  resolution: "@zarrita/storage@npm:0.1.4"
+"@zarrita/storage@npm:^0.2.0":
+  version: 0.2.0
+  resolution: "@zarrita/storage@npm:0.2.0"
   dependencies:
     reference-spec-reader: "npm:^0.2.0"
-    unzipit: "npm:1.4.3"
-  checksum: 10c0/8157662271fe9b4fb527bf4aec60b4b788e149e1b3b2bca0e26c11c5a55f9c3b6b085241c9bb4e14eed2f8e30a3226d074a119a780e6f7dd219ed8894ca499a2
+    unzipit: "npm:2.0.0"
+  checksum: 10c0/9f433cb8ab404741f05c842b57e03710cc8add4f58826a001099a7b0eff7f2bb3fd3a87c9c038655d479abc9a50368eaf0685898433e313c9cf587b6d51b03a8
   languageName: node
   linkType: hard
 
@@ -8625,9 +8632,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"discord.js@npm:^14.26.2":
-  version: 14.26.2
-  resolution: "discord.js@npm:14.26.2"
+"discord.js@npm:^14.26.3":
+  version: 14.26.3
+  resolution: "discord.js@npm:14.26.3"
   dependencies:
     "@discordjs/builders": "npm:^1.14.1"
     "@discordjs/collection": "npm:1.5.3"
@@ -8642,7 +8649,7 @@ __metadata:
     magic-bytes.js: "npm:^1.13.0"
     tslib: "npm:^2.6.3"
     undici: "npm:6.24.1"
-  checksum: 10c0/08592dad347cf9c6b1db4ebfd6f34d51eb0bd33ffbd9288b54981fc80255154194de306ca37d62b60646c785c329ecb285dc762a4ba3ce2cf8cf2ecf2bff6e68
+  checksum: 10c0/a358e8714bdc6a0d63b0e9246cd934e4ab620987b3e3bb55c1d3bc3ae298d4ec0c16268d380f3084d9338e99df56bce684dd50c22d090693acdcf91fa1b1c370
   languageName: node
   linkType: hard
 
@@ -9745,16 +9752,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fast-xml-parser@npm:^5.5.12":
-  version: 5.5.12
-  resolution: "fast-xml-parser@npm:5.5.12"
+"fast-xml-parser@npm:^5.6.0":
+  version: 5.6.0
+  resolution: "fast-xml-parser@npm:5.6.0"
   dependencies:
+    "@nodable/entities": "npm:^1.1.0"
     fast-xml-builder: "npm:^1.1.4"
     path-expression-matcher: "npm:^1.5.0"
     strnum: "npm:^2.2.3"
   bin:
     fxparser: src/cli/cli.js
-  checksum: 10c0/fe2985517b7fe160b1f0529f2b285063184f21b0590c4cc65d34d464eea98f22ecad2a64575f2376d196d9e7a2e9e1a05f6603f02df4a1d6ac845aec0cda9f5b
+  checksum: 10c0/3c6c1084d5aab932d34549492e16ccf6ba1267daf21664933fb719fa86a20efc0a60a575720a314cd7b0a4a36b1842bd34b9a22240af98f63e98c83782d8bb2e
   languageName: node
   linkType: hard
 
@@ -10052,9 +10060,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"geotiff@npm:^3.0.2":
-  version: 3.0.5
-  resolution: "geotiff@npm:3.0.5"
+"geotiff@npm:^3.0.5 || ^3.1.0-beta.0":
+  version: 3.1.0-beta.0
+  resolution: "geotiff@npm:3.1.0-beta.0"
   dependencies:
     "@petamoriken/float16": "npm:^3.9.3"
     lerc: "npm:^3.0.0"
@@ -10064,7 +10072,7 @@ __metadata:
     web-worker: "npm:^1.5.0"
     xml-utils: "npm:^1.10.2"
     zstddec: "npm:^0.2.0"
-  checksum: 10c0/f3bcfdacc80d032b1edc7f5f35e6b00baf87b715f441edf96c2aac02f682e9a4f2af7f7fe60471687eaa8505ecf6f74465186e96ff9fae703f839c73aa7f25d0
+  checksum: 10c0/d6d22d5012c03b780aac925661275234b0c896671640dd3cedf19778da8e10c5d9f4753b214f3f3964629e5892b83406be08e57ed469abd6a260b89c48ec7d40
   languageName: node
   linkType: hard
 
@@ -12876,29 +12884,29 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ol-mapbox-style@npm:^13.4.0":
-  version: 13.4.0
-  resolution: "ol-mapbox-style@npm:13.4.0"
+"ol-mapbox-style@npm:^13.4.1":
+  version: 13.4.1
+  resolution: "ol-mapbox-style@npm:13.4.1"
   dependencies:
     "@maplibre/maplibre-gl-style-spec": "npm:^24.4.1"
     mapbox-to-css-font: "npm:^3.2.0"
   peerDependencies:
     ol: "*"
-  checksum: 10c0/ae7921dffe8ea1171a5529b59d07bffec3d65415a8177035fbaaaadb8b766665036951fffce5fbb3dc362884edf8bf973fde794d574d4b69cb75d0a4d90d595e
+  checksum: 10c0/9569b92ce7e9eb8f3c1709b546cd30fd0916e4cbc8bd64227a452302c6a1b2e25f0ea360187883761bea37dc15f9883cfa37b6b269c81e36bbbda22fc506cac3
   languageName: node
   linkType: hard
 
-"ol@npm:10.8.0":
-  version: 10.8.0
-  resolution: "ol@npm:10.8.0"
+"ol@npm:10.9.0":
+  version: 10.9.0
+  resolution: "ol@npm:10.9.0"
   dependencies:
     "@types/rbush": "npm:4.0.0"
     earcut: "npm:^3.0.0"
-    geotiff: "npm:^3.0.2"
+    geotiff: "npm:^3.0.5 || ^3.1.0-beta.0"
     pbf: "npm:4.0.1"
     rbush: "npm:^4.0.0"
-    zarrita: "npm:^0.6.0"
-  checksum: 10c0/ede7ab1ab967ca9ec681c2efa72ea3e44013ec61df1d9fca2c7219eed2f29084f999f7c74202e433b03f83e546c75eb5a0e13c7481f2fb2e184308e5b37b7b64
+    zarrita: "npm:^0.7.1"
+  checksum: 10c0/f8e955819db2d9c2f46430c81485d8f0a22fb1b0ec654a128e79716b419905e8fd3aadc23185570f45c60e5d1fe926f3593341441dfc35c5f3ed3a5e4a54ec48
   languageName: node
   linkType: hard
 
@@ -13943,6 +13951,17 @@ __metadata:
     picocolors: "npm:^1.1.1"
     source-map-js: "npm:^1.2.1"
   checksum: 10c0/7cb2b32202ea1ead03f15cfbb2756a64a0f98942378e99b3dfce33678fe5eaf93e31d675a46e3a0dfb417d7b49b82d8999d0dd42a33c3b128e71ade0f978719a
+  languageName: node
+  linkType: hard
+
+"postcss@npm:^8.5.10":
+  version: 8.5.10
+  resolution: "postcss@npm:8.5.10"
+  dependencies:
+    nanoid: "npm:^3.3.11"
+    picocolors: "npm:^1.1.1"
+    source-map-js: "npm:^1.2.1"
+  checksum: 10c0/c592dffa0c4873b401f01955b265538d9942f425040df5e2b8f0ad34c83773a792ea0fa5859ccc99cfb5b955b4ebff118ab7056315388dc83b107b0fa8313576
   languageName: node
   linkType: hard
 
@@ -16035,9 +16054,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stylelint@npm:^17.7.0":
-  version: 17.7.0
-  resolution: "stylelint@npm:17.7.0"
+"stylelint@npm:^17.8.0":
+  version: 17.8.0
+  resolution: "stylelint@npm:17.8.0"
   dependencies:
     "@csstools/css-calc": "npm:^3.1.1"
     "@csstools/css-parser-algorithms": "npm:^4.0.0"
@@ -16066,7 +16085,7 @@ __metadata:
     micromatch: "npm:^4.0.8"
     normalize-path: "npm:^3.0.0"
     picocolors: "npm:^1.1.1"
-    postcss: "npm:^8.5.8"
+    postcss: "npm:^8.5.9"
     postcss-safe-parser: "npm:^7.0.1"
     postcss-selector-parser: "npm:^7.1.1"
     postcss-value-parser: "npm:^4.2.0"
@@ -16077,7 +16096,7 @@ __metadata:
     write-file-atomic: "npm:^7.0.1"
   bin:
     stylelint: bin/stylelint.mjs
-  checksum: 10c0/6af0ddf4462e071f1ab00036b2ae81aa29d33df3ae11ab0109c33844884fad56c8aa2ee6372f947f4d0dbe386e747138e1f014f1d508748335a3ecc7c0bf9a10
+  checksum: 10c0/de822c902944ed094afabb48802e5659ef479e7707cc0a789e11e833fff5d54fb7a82b83052df83882f77de00190c109dbacd0b2d87157857c3ed626eb0fb4d5
   languageName: node
   linkType: hard
 
@@ -17064,12 +17083,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"unzipit@npm:1.4.3":
-  version: 1.4.3
-  resolution: "unzipit@npm:1.4.3"
-  dependencies:
-    uzip-module: "npm:^1.0.2"
-  checksum: 10c0/6f710615aaafb6283d5f489950e54d158deaa1c8757ba486d98ddc76f3ae3b7eab24cd24017185dd5f4edcd2df43b04431bca009538d4116c60229b60db8dd3b
+"unzipit@npm:2.0.0":
+  version: 2.0.0
+  resolution: "unzipit@npm:2.0.0"
+  checksum: 10c0/7ee6af8bf1b8a978c08cebbe65d7e0dfab8a0889d20ef89c1b2219389cad255074611f895242f34087cb0cf428719dd8251734d0e8fa4033c618c9ff21d67445
   languageName: node
   linkType: hard
 
@@ -17149,13 +17166,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"uzip-module@npm:^1.0.2":
-  version: 1.0.3
-  resolution: "uzip-module@npm:1.0.3"
-  checksum: 10c0/206e09cf620aa178e5d8ab20425d1a4f4484de9a86673e8a5913087b7b0febb12d49a22b15574a3c5b0c9d911a0d600c9f51651de2a78ffbc6e0345b8ef3af8d
-  languageName: node
-  linkType: hard
-
 "valibot@npm:1.2.0":
   version: 1.2.0
   resolution: "valibot@npm:1.2.0"
@@ -17226,9 +17236,9 @@ __metadata:
     croner: "npm:^10.0.1"
     deep-equal: "npm:^2.2.3"
     dexie: "npm:^4.4.2"
-    discord.js: "npm:^14.26.2"
+    discord.js: "npm:^14.26.3"
     eslint: "npm:^10.2.0"
-    fast-xml-parser: "npm:^5.5.12"
+    fast-xml-parser: "npm:^5.6.0"
     ioredis: "npm:^5.10.1"
     jsonwebtoken: "npm:^9.0.3"
     jwks-rsa: "npm:^4.0.1"
@@ -17239,18 +17249,18 @@ __metadata:
     merge-ranges: "npm:^1.0.2"
     metar-taf-parser: "npm:^9.1.3"
     nuxt: "npm:^4.4.2"
-    ol: "npm:10.8.0"
+    ol: "npm:10.9.0"
     ol-ext: "npm:^4.0.38"
-    ol-mapbox-style: "npm:^13.4.0"
+    ol-mapbox-style: "npm:^13.4.1"
     pinia: "npm:^3.0.4"
-    postcss: "npm:^8.5.9"
+    postcss: "npm:^8.5.10"
     postcss-html: "npm:^1.8.1"
     prisma: "npm:^7.7.0"
     rou3: "npm:^0.8.1"
     sass-embedded: "npm:^1.99.0"
     sharp: "npm:^0.34.5"
     srvx: "npm:^0.11.15"
-    stylelint: "npm:^17.7.0"
+    stylelint: "npm:^17.8.0"
     stylelint-config-clean-order: "npm:^8.0.1"
     stylelint-config-recommended-scss: "npm:^17.0.1"
     stylelint-config-recommended-vue: "npm:^1.6.1"
@@ -18329,13 +18339,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zarrita@npm:^0.6.0":
-  version: 0.6.2
-  resolution: "zarrita@npm:0.6.2"
+"zarrita@npm:^0.7.1":
+  version: 0.7.1
+  resolution: "zarrita@npm:0.7.1"
   dependencies:
-    "@zarrita/storage": "npm:^0.1.4"
+    "@zarrita/storage": "npm:^0.2.0"
     numcodecs: "npm:^0.3.2"
-  checksum: 10c0/41d9d08e8f8118ebddc71da05337f8e0ee781f1a53ae27a0462e3d4dbbc2514b9d0c6bb0b06411a3bd6471eec3a839b088960291ed98fc259faa149e5928adcd
+  checksum: 10c0/f82f5710ff7a5594e02f50a3519a3a03eaba5395c0c546cdf9066a72c43442443191708835749917bd603e61062cf555fba3f0960ba3fc1c703aa76ed4ff7b9b
   languageName: node
   linkType: hard
 
