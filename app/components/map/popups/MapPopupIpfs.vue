@@ -4,7 +4,7 @@
             class="ipfs-info__cols"
             :class="{ 'ipfs-info__cols--rows': blocks.length >= 4 }"
         >
-            <ui-text-block
+            <common-info-block
                 v-for="(block, index) in blocks"
                 :key="block.title"
                 :bottom-items="[block.value]"
@@ -14,7 +14,7 @@
                 <template #top="{ item }">
                     <div class="ipfs-info__info">
                         <span>{{item}}</span>
-                        <ui-tooltip
+                        <common-tooltip
                             v-if="block.hint"
                             :location="getTooltipLocation(index)"
                             width="250px"
@@ -25,16 +25,16 @@
                                 </div>
                             </template>
                             {{block.hint}}
-                        </ui-tooltip>
+                        </common-tooltip>
                     </div>
                 </template>
-            </ui-text-block>
+            </common-info-block>
         </div>
         <div
             v-if="status || ipfs.cdmData.depInfo || ipfs.aobt"
             class="ipfs-info__cols"
         >
-            <ui-text-block
+            <common-info-block
                 v-if="status"
                 :bottom-items="[status]"
                 text-align="center"
@@ -43,7 +43,7 @@
                 <template #top="{ item }">
                     <div class="ipfs-info__info">
                         <span>{{item}}</span>
-                        <ui-tooltip
+                        <common-tooltip
                             v-if="statusHint"
                             :location="(ipfs.cdmData.depInfo || ipfs.aobt) ? 'right' : 'bottom'"
                             width="250px"
@@ -54,41 +54,41 @@
                                 </div>
                             </template>
                             {{statusHint}}
-                        </ui-tooltip>
+                        </common-tooltip>
                     </div>
                 </template>
-            </ui-text-block>
-            <ui-text-block
+            </common-info-block>
+            <common-info-block
                 v-if="ipfs.cdmData.depInfo"
                 :bottom-items="[ipfs.cdmData.depInfo.split('/').join(' | ')]"
                 text-align="center"
                 :top-items="['Departure info']"
             />
-            <ui-text-block
+            <common-info-block
                 v-if="ipfs.aobt"
                 :bottom-items="[`${ ipfs.aobt.slice(0,4) }z`]"
                 text-align="center"
                 :top-items="['AOBT']"
             />
         </div>
-        <ui-notification
+        <common-notification
             v-if="ipfs.cdmData.reason"
             type="info"
         >
             Reason for the CTOT: {{ ipfs.cdmData.reason }}
-        </ui-notification>
+        </common-notification>
         <div
             v-if="store.user?.cid === props.pilot.cid.toString()"
             class="ipfs-info_obt"
         >
-            <ui-block-title
+            <common-block-title
                 class="ipfs-info_obt_title"
                 remove-margin
             >
                 Target Off-Block time
 
                 <template #append>
-                    <ui-tooltip
+                    <common-tooltip
                         location="left"
                         width="250px"
                     >
@@ -100,48 +100,48 @@
                         OBT – Off-Blocks Time<br><br>
 
                         The time your aircraft is expected to be ready for start-up and pushback.
-                    </ui-tooltip>
+                    </common-tooltip>
                 </template>
-            </ui-block-title>
+            </common-block-title>
 
-            <ui-notification type="info">
+            <common-notification type="info">
                 More information about your flight: <a
                     class="__link"
                     href="https://vats.im/vdgs"
                     target="_blank"
                 >VDGS Panel</a>
-            </ui-notification>
+            </common-notification>
 
-            <ui-notification
+            <common-notification
                 v-if="props.ipfs?.atfcmStatus.startsWith('FLS')"
                 type="error"
             >
                 Your slot has been suspended. Please, update your OBT
-            </ui-notification>
+            </common-notification>
 
             <div class="ipfs-info__cols">
-                <ui-input-number
+                <common-input-number
                     v-model="hrs"
                     :input-attrs="{ max: 23, min: 0 }"
                     placeholder="HH"
                 >
                     Hours
-                </ui-input-number>
-                <ui-input-number
+                </common-input-number>
+                <common-input-number
                     v-model="mins"
                     :input-attrs="{ max: 59, min: 0 }"
                     placeholder="MM"
                 >
                     Minutes
-                </ui-input-number>
-                <ui-button
+                </common-input-number>
+                <common-button
                     class="ipfs-info_obt_btn"
                     :disabled="saving"
                     size="M"
                     @click="saveEstimate"
                 >
                     Save
-                </ui-button>
+                </common-button>
             </div>
         </div>
     </div>
@@ -152,13 +152,13 @@ import type { PropType } from 'vue';
 import { ViffStatus } from '~/types/data/vatsim';
 import type { IpfsUser, VatsimExtendedPilot } from '~/types/data/vatsim';
 import QuestionIcon from 'assets/icons/basic/question.svg?component';
-import UiButton from '~/components/ui/buttons/UiButton.vue';
-import UiInputNumber from '~/components/ui/inputs/UiInputNumber.vue';
-import UiNotification from '~/components/ui/data/UiNotification.vue';
-import UiTooltip from '~/components/ui/data/UiTooltip.vue';
-import type { TooltipLocation } from '~/components/ui/data/UiTooltip.vue';
-import UiTextBlock from '~/components/ui/text/UiTextBlock.vue';
-import UiBlockTitle from '~/components/ui/text/UiBlockTitle.vue';
+import CommonTooltip from '~/components/common/basic/CommonTooltip.vue';
+import type { TooltipLocation } from '~/components/common/basic/CommonTooltip.vue';
+import CommonBlockTitle from '~/components/common/blocks/CommonBlockTitle.vue';
+import CommonNotification from '~/components/common/basic/CommonNotification.vue';
+import CommonInputNumber from '~/components/common/basic/CommonInputNumber.vue';
+import CommonButton from '~/components/common/basic/CommonButton.vue';
+import CommonInfoBlock from '~/components/common/blocks/CommonInfoBlock.vue';
 
 const props = defineProps({
     pilot: {

@@ -3,6 +3,7 @@
 # [1.2.4-7]
 
 - Added vIFF & CDM system integration
+- Fixed SID transition selection not working
 
 # [1.2.4-6.4]
 
