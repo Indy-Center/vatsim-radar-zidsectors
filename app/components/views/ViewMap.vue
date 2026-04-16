@@ -275,7 +275,13 @@ import { setupDataFetch } from '~/composables/render/storage';
 import MapOverlays from '~/components/map/overlays/MapOverlays.vue';
 import { useMapStore } from '~/store/map';
 import type { StoreOverlay } from '~/store/map';
-import { observerFlight, ownFlight, showPilotOnMap, skipObserver } from '~/composables/vatsim/pilots';
+import {
+    allArrivedPilots,
+    observerFlight,
+    ownFlight,
+    showPilotOnMap,
+    skipObserver,
+} from '~/composables/vatsim/pilots';
 import { findAtcByCallsign } from '~/composables/vatsim/controllers';
 import { boundingExtent, buffer, getCenter } from 'ol/extent.js';
 import { toDegrees } from 'ol/math.js';
@@ -317,6 +323,10 @@ import { getOriginalWorldCoordinate } from '~/composables/map/world';
 import MapSectorList from '~/components/map/layers/MapSectorList.vue';
 import MapAircraftList from '~/components/map/layers/MapAircraftList.vue';
 import MapMinifiedOverlays from '~/components/map/overlays/MapMinifiedOverlays.vue';
+import { isVatGlassesActive } from '~/utils/data/vatglasses';
+import { updateControllersRender } from '~/composables/render/update';
+import { runwaysState } from '~/composables/render/update/vatglasses';
+import { debugControllers } from '~/composables/render/update/utils';
 
 defineProps({
     mode: {
@@ -447,7 +457,7 @@ async function checkAndAddOwnAircraft() {
     initialSpawn = true;
     initialOwnCheck = true;
 
-    if (shouldTrack && overlay && overlay.type === 'pilot' && store.user.settings.autoZoom && !dataStore.vatsim.data.airports.value.some(x => x.aircraft.groundArr?.includes(aircraft.cid))) {
+    if (shouldTrack && overlay && overlay.type === 'pilot' && store.user.settings.autoZoom && !allArrivedPilots.has(aircraft.cid)) {
         showPilotOnMap(overlay.data.pilot, map.value);
     }
 }
@@ -465,6 +475,7 @@ const getRouteZoom = (): number | null => {
 
 const observerCookie = useCookie<number | false>('observer-for-cid', {
     path: '/',
+    sameSite: 'none',
     secure: true,
 });
 
@@ -486,20 +497,25 @@ const restoreOverlays = async () => {
     await checkAndAddOwnAircraft().catch(useRadarError);
 
     for (const overlay of localOverlays) {
-        const existingOverlay = mapStore.overlays.find(x => x.key === overlay.key);
-        if (existingOverlay) return;
+        try {
+            const existingOverlay = mapStore.overlays.find(x => x.key === overlay.key);
+            if (existingOverlay) return;
 
-        if (overlay.type === 'pilot') {
-            await mapStore.addPilotOverlay(overlay.key, undefined, overlay);
+            if (overlay.type === 'pilot') {
+                await mapStore.addPilotOverlay(overlay.key, undefined, overlay);
+            }
+            else if (overlay.type === 'prefile') {
+                await mapStore.addPrefileOverlay(overlay.key, overlay);
+            }
+            else if (overlay.type === 'atc') {
+                await mapStore.addAtcOverlay(overlay.key, overlay);
+            }
+            else if (overlay.type === 'airport') {
+                await mapStore.addAirportOverlay(overlay.key, undefined, overlay);
+            }
         }
-        else if (overlay.type === 'prefile') {
-            await mapStore.addPrefileOverlay(overlay.key, overlay);
-        }
-        else if (overlay.type === 'atc') {
-            await mapStore.addAtcOverlay(overlay.key, overlay);
-        }
-        else if (overlay.type === 'airport') {
-            await mapStore.addAirportOverlay(overlay.key, undefined, overlay);
+        catch (e) {
+            console.error(e);
         }
     }
 
@@ -564,19 +580,24 @@ const restoreOverlays = async () => {
 
             if (!type || !key) continue;
 
-            switch (type) {
-                case 'pilot':
-                    await mapStore.addPilotOverlay(key, undefined, { sticky, collapsed });
-                    break;
-                case 'prefile':
-                    await mapStore.addPrefileOverlay(key, { sticky, collapsed });
-                    break;
-                case 'airport':
-                    await mapStore.addAirportOverlay(key, undefined, { sticky, collapsed });
-                    break;
-                case 'atc':
-                    await mapStore.addAtcOverlay(key, { sticky, collapsed });
-                    break;
+            try {
+                switch (type) {
+                    case 'pilot':
+                        await mapStore.addPilotOverlay(key, undefined, { sticky, collapsed });
+                        break;
+                    case 'prefile':
+                        await mapStore.addPrefileOverlay(key, { sticky, collapsed });
+                        break;
+                    case 'airport':
+                        await mapStore.addAirportOverlay(key, undefined, { sticky, collapsed });
+                        break;
+                    case 'atc':
+                        await mapStore.addAtcOverlay(key, { sticky, collapsed });
+                        break;
+                }
+            }
+            catch (e) {
+                console.error(e);
             }
         }
     }
@@ -631,9 +652,23 @@ watch([isMobile, popups], () => {
     popupsHeight.value = popups.value?.clientHeight ?? 0;
 });
 
+function saveOverlays() {
+    if (!restoredOverlays.value) return;
+    localStorage.setItem('overlays', JSON.stringify(
+        mapStore.overlays.map(x => ({
+            ...x,
+            data: undefined,
+        })),
+    ));
+}
+
 watch([visibleOverlays, popupsHeight, isMobile], async () => {
     await nextTick();
-    if (!popups.value && !isMobile.value) return;
+    if (!popups.value && !isMobile.value) {
+        if (!store.config.airport) saveOverlays();
+
+        return;
+    }
     if (import.meta.server) return;
 
     if (popups.value) {
@@ -664,14 +699,7 @@ watch([visibleOverlays, popupsHeight, isMobile], async () => {
         });
     }
 
-    if (!store.config.airport) {
-        localStorage.setItem('overlays', JSON.stringify(
-            mapStore.overlays.map(x => ({
-                ...x,
-                data: undefined,
-            })),
-        ));
-    }
+    if (!store.config.airport) saveOverlays();
 }, {
     deep: true,
 });
@@ -874,10 +902,10 @@ await setupDataFetch({
             center = toLonLat(getCenter(projectionExtent));
         }
         else if (store.config.airports && !store.config.center) {
-            const airports = dataStore.vatspy.value?.data.airports.filter(x => store.config.airports?.includes(x.icao)) ?? [];
+            const airports = store.config.airports.map(x => dataStore.vatspy.value?.data.keyAirports.realIcao[x]).filter(x => x);
 
             if (airports.length) {
-                projectionExtent = buffer(boundingExtent(airports.map(x => fromLonLat([x.lon, x.lat]))), 0.5);
+                projectionExtent = buffer(boundingExtent(airports.map(x => fromLonLat([x!.lon, x!.lat]))), 0.5);
                 center = toLonLat(getCenter(projectionExtent));
             }
         }
@@ -1047,6 +1075,14 @@ await setupDataFetch({
 
         success = true;
     },
+});
+
+const vgLevel = computed(() => store.localSettings.vatglassesLevel);
+
+useUpdateCallback(['short', isVatGlassesActive, vgLevel, runwaysState, debugControllers], () => {
+    updateControllersRender();
+}, {
+    immediate: true,
 });
 
 function handleKeys(event: KeyboardEvent) {

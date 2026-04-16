@@ -165,7 +165,7 @@ const vatglassesStyle = ({ colour, max, positionId }: FeatureAirportSectorVGProp
     }
 
     (styleCache[key] as Style).getFill()!.setColor(`rgba(${ rgba }, 0.2)`);
-    (styleCache[key] as Style).getStroke()!.setColor(`rgba(${ rgba }, 0.2)`);
+    (styleCache[key] as Style).getStroke()!.setColor(`rgba(${ rgba }, 0.6)`);
 
     return styleCache[key] as Style;
 };

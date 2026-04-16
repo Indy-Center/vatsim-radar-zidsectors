@@ -18,6 +18,7 @@ import type {
 
 export const globalMapEntities = {
     airports: null as VectorSource | null,
+    sectors: null as VectorSource | null,
 };
 
 export interface FeatureAirportProperties {
@@ -63,7 +64,6 @@ export interface FeatureAirportApproachTextProperties extends FeatureAirportAppr
 
 export interface FeatureAirportFacility {
     facility: number;
-    booked: boolean;
     atc: VatsimShortenedController[];
 }
 

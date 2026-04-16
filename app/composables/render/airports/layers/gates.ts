@@ -1,6 +1,5 @@
 import type VectorSource from 'ol/source/Vector';
 import type VectorLayer from 'ol/layer/Vector';
-import type { AirportListItem } from '~/composables/render/airports';
 import type { AirportNavigraphData } from '~/components/map/layers/MapAirportsList.vue';
 import { getCurrentThemeRgbColor } from '~/composables';
 import { Fill, Stroke, Style, Text } from 'ol/style';
@@ -21,9 +20,10 @@ let styleCache: Record<string, Style> = {};
 export function setMapGatesRunways({ source, airports, navigraphData, layer }: {
     source: VectorSource;
     layer: VectorLayer;
-    airports: AirportListItem[];
+    airports: DataAirport[];
     navigraphData: AirportNavigraphData;
 }) {
+    const dataStore = useDataStore();
     const store = useStore();
     styleFillCache = {};
     styleStrokeCache = {};
@@ -109,7 +109,7 @@ export function setMapGatesRunways({ source, airports, navigraphData, layer }: {
         });
     }
 
-    const airportsMap = Object.fromEntries(airports.map(airport => [airport.airport.icao, airport.aircraft]));
+    const airportsMap = Object.fromEntries(airports.map(airport => [airport.icao, airport.aircraft]));
 
     for (const icao in navigraphData) {
         const gates = navigraphData[icao]?.gates;
@@ -118,8 +118,8 @@ export function setMapGatesRunways({ source, airports, navigraphData, layer }: {
         if (!runways?.length && !gates?.length) continue;
 
         const pilots = [
-            ...(airportsMap[icao]?.groundDep ?? []),
-            ...(airportsMap[icao]?.groundArr ?? []),
+            ...(airportsMap[icao]?.groundDep ?? []).map(x => dataStore.vatsim.data.keyedPilots.value[x]),
+            ...(airportsMap[icao]?.groundArr ?? []).map(x => dataStore.vatsim.data.keyedPilots.value[x]),
         ] as VatsimShortenedAircraft[];
 
         const resolvedGates = gates ? getGatesMatch(gates, pilots) : [];

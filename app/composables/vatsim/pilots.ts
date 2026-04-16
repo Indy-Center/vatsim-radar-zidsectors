@@ -57,15 +57,34 @@ export async function showPilotOnMap(pilot: VatsimShortenedAircraft | VatsimExte
     });
 }
 
-/**
- * @deprecated
- */
-export function isPilotOnGround(pilot: VatsimShortenedAircraft | VatsimExtendedPilot | VatsimMandatoryPilot) {
-    const dataStore = useDataStore();
+export const allArrivedPilots = new Set<number>();
 
+export const allPilotsOnGround = computed(() => {
+    const allPilotsOnGround = new Set<number>();
+    allArrivedPilots.clear();
+    const dataStore = useDataStore();
+    for (const icao in dataStore.airportsList.value) {
+        const airport = dataStore.airportsList.value[icao];
+        if (!airport) continue;
+
+        const arr = airport.aircraft.groundArr;
+        if (arr) {
+            for (const cid of arr) {
+                allPilotsOnGround.add(cid);
+                allArrivedPilots.add(cid);
+            }
+        }
+        const dep = airport.aircraft.groundDep;
+        if (dep) for (const cid of dep) allPilotsOnGround.add(cid);
+    }
+
+    return allPilotsOnGround;
+});
+
+export function isPilotOnGround(pilot: VatsimShortenedAircraft | VatsimExtendedPilot | VatsimMandatoryPilot) {
     return 'isOnGround' in pilot
         ? pilot.isOnGround
-        : dataStore.vatsim.data.airports.value.some(x => x.aircraft.groundArr?.includes(pilot.cid) || x.aircraft.groundDep?.includes(pilot.cid));
+        : allPilotsOnGround.value.has(pilot.cid);
 }
 
 export function getPilotStatus(status: VatsimExtendedPilot['status'], isOffline = false): { color: ColorsList; title: string } {
@@ -310,6 +329,7 @@ export function aircraftCoordsToPixel(map: Map, aircraft: VatsimMandatoryPilot):
 
 export const skipObserver = computed(() => useCookie<boolean>('observer-skip', {
     path: '/',
+    sameSite: 'none',
     secure: true,
     maxAge: 60 * 60 * 24 * 365,
 }));

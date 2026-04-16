@@ -8,7 +8,6 @@
                 v-if="dataStore.versions.value?.navigraph && (!isMobile || mapStore.isNavigraphUpdating)"
                 class="map-footer_left_section"
                 title="Navigraph Data AIRAC"
-                @click="!store.user?.hasFms ? store.airacPopup = true : undefined"
             >
                 <navigation-airac/>
             </div>
@@ -95,7 +94,7 @@
                             <span>{{ getCounts.pilots }}</span> pilots
                         </div>
                         <div class="map-footer__connections_info_item">
-                            <span>{{ getCounts.firs + getCounts.atc }}</span> ATC
+                            <span>{{ getCounts.controllers }}</span> ATC
                         </div>
                         <div
                             v-if="getCounts.sups"

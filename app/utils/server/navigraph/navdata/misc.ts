@@ -31,7 +31,7 @@ export const processNavdataHoldings: NavdataProcessFunction = async ({ fullData,
     for (const item of holdings) {
         const key = `${ item.icao_code }-${ item.waypoint_identifier }-${ item.area_code }-${ item.region_code }`;
 
-        const waypoint = shortData.waypoints?.[`${ item.waypoint_identifier }-${ item.area_code }`];
+        const waypoint = shortData.waypoints?.[`${ item.waypoint_identifier }-${ item.area_code }-${ item.region_code ?? 'default' }`];
 
         fullData.holdings[key] = {
             name: item.holding_name,
@@ -68,6 +68,7 @@ export const processNavdataWaypoints: NavdataProcessFunction = async ({ fullData
         waypoint_type: string;
         waypoint_usage?: string;
         is_terminal?: boolean;
+        region_code?: string;
     }>({
         db,
         sql: 'SELECT * FROM tbl_ea_enroute_waypoints',
@@ -86,6 +87,7 @@ export const processNavdataWaypoints: NavdataProcessFunction = async ({ fullData
         waypoint_longitude: number;
         waypoint_name: string;
         waypoint_type: string;
+        region_code?: string;
         is_terminal?: boolean;
     }>({
         db,
@@ -110,7 +112,7 @@ export const processNavdataWaypoints: NavdataProcessFunction = async ({ fullData
             terminal: !!item.is_terminal,
         });
 
-        shortData.waypoints[`${ item.waypoint_identifier }-${ item.area_code }`] = [item.waypoint_identifier, item.waypoint_longitude, item.waypoint_latitude, item.waypoint_type, !!item.is_terminal];
+        shortData.waypoints[`${ item.waypoint_identifier }-${ item.area_code }-${ item.region_code ?? 'default' }`] = [item.waypoint_identifier, item.waypoint_longitude, item.waypoint_latitude, item.waypoint_type, !!item.is_terminal];
     }
 };
 
@@ -206,7 +208,7 @@ export const processNavdataAirways: NavdataProcessFunction = async ({ fullData, 
                 direction: airway.direction_restriction as any,
             });
 
-            const waypoint = shortData.waypoints?.[`${ airway.waypoint_identifier }-${ airway.area_code }`];
+            const waypoint = shortData.waypoints?.[`${ airway.waypoint_identifier }-${ airway.area_code }-default`];
 
             shortAirway[2].push([airway.waypoint_identifier, airway.inbound_course, airway.outbound_course, airway.waypoint_longitude, airway.waypoint_latitude, flightLevel, waypoint?.[3]]);
         }

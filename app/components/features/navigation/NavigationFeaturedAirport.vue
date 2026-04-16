@@ -2,7 +2,7 @@
     <div
         class="airport-card"
         :class="{ 'airport-card--no-index': typeof position !== 'number' }"
-        @click="mapStore.addAirportOverlay(airport.airport.icao)"
+        @click="mapStore.addAirportOverlay(airport.icao)"
     >
         <div
             v-if="typeof position === 'number'"
@@ -11,6 +11,7 @@
             {{ position }}
         </div>
         <ui-button
+            v-if="airport.airport"
             :disabled="!map"
             size="S"
             type="secondary-875"
@@ -21,11 +22,11 @@
             </template>
         </ui-button>
         <div class="airport-card_icao">
-            {{ airport.airport.icao }}
+            {{ airport.icao }}
         </div>
         <ui-text-block
             v-if="!isMobile"
-            :bottom-items="[ country?.country, airport.airport.name ]"
+            :bottom-items="[ country?.country, airport.airport?.name ]"
             class="airport-card_info"
         >
             <template #bottom="{ item }">
@@ -41,17 +42,17 @@
                     <departing-icon class="airport-card_data_counts_counter_icon"/>
                     <div class="airport-card_data_counts_counter_text">
                         <template v-if="store.localSettings.traffic?.showTotalDeparturesInFeaturedAirports">
-                            {{ (airport.aircraftList.groundDep?.length ?? 0) + (airport.aircraftList.departures?.length ?? 0) }}
+                            {{ (airport.aircraft.groundDep?.length ?? 0) + (airport.aircraft.departures?.length ?? 0) }}
                         </template>
                         <template v-else>
-                            {{ airport.aircraftList.groundDep?.length ?? 0 }}
+                            {{ airport.aircraft.groundDep?.length ?? 0 }}
                         </template>
                     </div>
                 </div>
                 <div class="airport-card_data_counts_counter">
                     <arriving-icon class="airport-card_data_counts_counter_icon"/>
                     <div class="airport-card_data_counts_counter_text">
-                        {{ airport.aircraftList.arrivals?.length ?? 0 }}
+                        {{ airport.aircraft.arrivals?.length ?? 0 }}
                     </div>
                 </div>
             </div>
@@ -84,10 +85,11 @@ import UiButton from '~/components/ui/buttons/UiButton.vue';
 import LocationIcon from '~/assets/icons/kit/location.svg?component';
 import type { ShallowRef } from 'vue';
 import type { Map } from 'ol';
+import type { AirportListItem } from '~/composables/render/airports';
 
 const props = defineProps({
     airport: {
-        type: Object as PropType<AirportsList>,
+        type: Object as PropType<AirportListItem>,
         required: true,
     },
     position: {
@@ -96,7 +98,7 @@ const props = defineProps({
 });
 
 // eslint-disable-next-line vue/no-setup-props-reactivity-loss
-const country = getAirportCountry(props.airport.airport.icao);
+const country = getAirportCountry(props.airport.icao);
 const ids = useFacilitiesIds();
 
 const mapStore = useMapStore();
@@ -114,7 +116,7 @@ interface Controller {
 const controllers = computed<Controller[]>(() => {
     const list: Controller[] = [];
 
-    for (const controller of [...props.airport.localAtc, ...props.airport!.arrAtc]) {
+    for (const controller of props.airport.atc) {
         if (controller.booking) continue;
         if (list.some(x => controller.isATIS ? x.isATIS : x.facility === controller.facility) || controller.facility === ids.FSS || controller.facility === ids.CTR) continue;
 

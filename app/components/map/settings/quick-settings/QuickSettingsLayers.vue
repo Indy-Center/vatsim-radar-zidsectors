@@ -39,7 +39,7 @@
                     Combined Mode
 
                     <template #description>
-                        All sectors at once. Eats performance.
+                        All sectors at once. Slows down updates depending on your device.
                     </template>
                 </ui-toggle>
                 <div
@@ -269,6 +269,15 @@
             <template #description>
                 Enables counter with aircraft on ground with same departure-arrival<br><br>
                 When enabled, those aircraft are always excluded<br> from dep list when on ground
+            </template>
+        </ui-toggle>
+        <ui-toggle
+            :model-value="!!store.localSettings.debugMode"
+            @update:modelValue="setUserLocalSettings({ debugMode: $event })"
+        >
+            Debug mode
+            <template #description>
+                Allows to use VATGlasses beta datafeed, test parse flight plans, and add fake ATCs
             </template>
         </ui-toggle>
 

@@ -7,17 +7,17 @@
         <div class="atc_content">
             <ui-chip
                 v-if="showFacility"
-                :atc-facility="controller.isATIS ? -1 : controller.facility"
+                :atc-facility="isATIS ? -1 : controller.facility"
                 class="atc_facility"
             >
-                {{ controller.isATIS ? 'ATIS' : controller.facility === -2 ? 'CTAF' : dataStore.vatsim.data.facilities.value.find(x => x.id === controller.facility)?.short }}
+                {{ isATIS ? 'ATIS' : controller.facility === -2 ? 'CTAF' : dataStore.vatsim.data.facilities.value.find(x => x.id === controller.facility)?.short }}
             </ui-chip>
             <ui-text
                 class="atc_callsign"
                 type="3b"
             >
                 <ui-spoiler
-                    v-if="!controller.booking"
+                    v-if="!controller.isBooking"
                     type="controller"
                 >
                     {{ controller.duplicatedBy || controller.callsign }}
@@ -26,7 +26,7 @@
                     {{controller.duplicatedBy || controller.callsign}}
                 </template>
             </ui-text>
-            <template v-if="!controller.booking">
+            <template v-if="!controller.isBooking">
                 <div
                     class="atc_frequency"
                     :class="{ 'atc_frequency--not-tuned-up': notTunedUp }"
@@ -77,7 +77,7 @@
             </template>
         </div>
         <div
-            v-if="(showAtis && controller.text_atis?.length) || controller.booking"
+            v-if="(showAtis && controller.text_atis?.length) || controller.isBooking"
             class="atc_atis"
         >
             <template v-if="showAtis && controller.text_atis?.length">
@@ -97,27 +97,25 @@
                 >
                     {{userFriend?.comment}}
                 </ui-text>
+                <ui-text
+                    v-if="controller.booking"
+                    class="atc_atis_booking"
+                    type="caption"
+                >
+                    Booked until
+
+                    {{ makeBookingTime(controller.booking?.end, store.mapSettings.bookingsLocalTimezone) }}Z
+                </ui-text>
                 <vatsim-controller-time-online
                     v-if="controller.logon_time"
                     :controller="controller"
                 />
-                <template v-if="controller.booking">
-                    Booked
-                    <template v-if="store.mapSettings.bookingsLocalTimezone">
-                        {{ controller.booking?.end_local }}
-                    </template>
-                    <template v-else>
-                        {{ controller.booking?.end_z }}Z
-                    </template>
-                </template>
             </template>
             <template v-else-if="controller.booking">
                 Booked from
-                <template v-if="store.mapSettings.bookingsLocalTimezone">
-                    {{ controller.booking?.start_local }} to {{ controller.booking?.end_local }}
-                </template>
-                <template v-else>
-                    {{ controller.booking?.start_z }}Z to {{ controller.booking?.end_z }}Z
+                {{ makeBookingTime(controller.booking?.start, store.mapSettings.bookingsLocalTimezone) }} to {{ makeBookingTime(controller.booking?.end, store.mapSettings.bookingsLocalTimezone) }}
+                <template v-if="!store.mapSettings.bookingsLocalTimezone">
+                    Z
                 </template>
             </template>
         </div>
@@ -137,6 +135,7 @@ import { findAtcByCallsign } from '~/composables/vatsim/controllers';
 import UiChip from '~/components/ui/text/UiChip.vue';
 import UiSeparator from '~/components/ui/data/UiSeparator.vue';
 import UiText from '~/components/ui/text/UiText.vue';
+import { makeBookingTime } from '~/composables/vatsim/bookings';
 
 const props = defineProps({
     controller: {
@@ -180,7 +179,11 @@ const copiedFor = ref('');
 const store = useStore();
 
 const notTunedUp = computed(() => {
-    return props.controller?.rating && !props.controller.isATIS && (!props.controller?.frequencies?.length || (props.controller.frequencies?.some(x => x[3] === '.') && !props.controller.frequencies?.some(x => x === props.controller.frequency)));
+    return props.controller?.rating && !isATIS.value && (!props.controller?.frequencies?.length || (props.controller.frequencies?.some(x => x[3] === '.') && !props.controller.frequencies?.some(x => x === props.controller.frequency)));
+});
+
+const isATIS = computed(() => {
+    return props.controller?.isATIS || props.controller?.callsign.endsWith('ATIS');
 });
 
 const handleClick = () => {
@@ -296,6 +299,10 @@ const isCopied = (key: string) => {
     &_atis {
         .atc-time {
             margin-top: 10px;
+        }
+
+        &_booking {
+            text-align: right;
         }
     }
 

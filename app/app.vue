@@ -41,4 +41,34 @@ if (import.meta.server) {
         return true;
     });
 }
+
+async function receiveMessage(event: MessageEvent) {
+    const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+
+    if (data && 'vatsimToken' in data) {
+        await $fetch('/api/auth/vatsim/token', {
+            method: 'POST',
+            body: {
+                token: data.vatsimToken,
+            },
+        });
+        location.reload();
+    }
+
+    if (data && 'action' in data) {
+        if (data.action === 'logout') {
+            document.location.href = '/api/user/logout';
+        }
+    }
+}
+
+onMounted(() => {
+    window.addEventListener('message', receiveMessage);
+
+    window.parent.postMessage({ status: 'ready' }, '*');
+});
+
+onBeforeUnmount(() => {
+    window.removeEventListener('message', receiveMessage);
+});
 </script>

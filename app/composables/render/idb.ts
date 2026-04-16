@@ -6,7 +6,7 @@ import type {
     RadarDataAirlinesAllList,
     SimAwareAPIData,
     SimAwareDataFeature,
-    VatglassesAPIData,
+    VatglassesAPIData, VatglassesData, VatglassesPosition,
 } from '~/utils/server/storage';
 
 import type {
@@ -34,6 +34,8 @@ export type IDBNavigraphProcedures = {
 class VatsimRadarDB extends Dexie {
     data!: Table<VatSpyAPIData | SimAwareAPIData | VatglassesAPIData | IDBAirlinesData, string>;
 
+    vatglasses!: Table<VatglassesPosition[] | VatglassesData[string] | string, string>;
+
     simaware!: Table<SimAwareDataFeature[] | string, string>;
 
     airlines!: Table<RadarDataAirline | string, string>;
@@ -52,9 +54,10 @@ export async function initClientDB() {
     indexedDB.deleteDatabase('vatsim-radar');
     const db = new VatsimRadarDB('vatsim-radar-db');
 
-    db.version(3)
+    db.version(6)
         .stores({
             data: '',
+            vatglasses: '',
             simaware: '',
             airlines: '',
             navigraphAirports: '',

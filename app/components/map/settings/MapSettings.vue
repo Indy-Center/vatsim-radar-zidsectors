@@ -316,8 +316,11 @@ const importedPreset = shallowRef<UserMapSettings | false | null>(null);
 const importedPresetName = ref('');
 const isMobile = useIsMobile();
 const isPC = useIsPC();
+const debug = useIsDebug();
 
-const isDebug = useIsDebug();
+const isDebug = computed(() => {
+    return debug || !!store.localSettings.debugMode;
+});
 
 const createPreset = async () => {
     if (filtersImportMode.value === 'settings') {

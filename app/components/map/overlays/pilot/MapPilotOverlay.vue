@@ -71,14 +71,6 @@
             </div>
         </template>
         <template
-            v-if="vatGlassesActive"
-            #tab-atc
-        >
-            <ui-notification cookie-name="vatglasses-atc-warning">
-                This data may not be reliable when VatGlasses integration is active. Refer to map instead.
-            </ui-notification>
-        </template>
-        <template
             v-for="i in ['center', 'atis', 'app', 'ground', 'ctaf']"
             :key="i"
             #[`controllers-${i}`]="{ section }"
@@ -110,6 +102,12 @@
                 :is-offline="isOffline"
                 :pilot
                 @viewRoute="viewRoute()"
+            />
+        </template>
+        <template #ipfs>
+            <map-popup-ipfs
+                :ipfs="overlay.data.ipfs!"
+                :pilot
             />
         </template>
         <template #graph>
@@ -261,7 +259,7 @@ import type { InfoPopupSection } from '~/components/popups/PopupOverlay.vue';
 import type {
     VatsimAchievementUser,
     VatsimExtendedPilot,
-    VatsimShortenedController,
+    VatsimShortenedController, IpfsUser,
 } from '~/types/data/vatsim';
 import TrackIcon from 'assets/icons/kit/track.svg?component';
 import LocationIcon from '~/assets/icons/kit/location.svg?component';
@@ -285,15 +283,15 @@ import VatsimControllersList from '~/components/features/vatsim/controllers/Vats
 import UiBubble from '~/components/ui/data/UiBubble.vue';
 import type { VatsimAirportInfo } from '~/utils/server/vatsim';
 import PilotOverlayFlightInfo from '~/components/map/overlays/pilot/PilotOverlayFlightInfo.vue';
-import { getAirportRunways } from '~/utils/data/vatglasses-front';
 import MapAirportRunwaySelector from '~/components/map/airports/MapAirportRunwaySelector.vue';
 import UiNotification from '~/components/ui/data/UiNotification.vue';
 import MapAirportBarsInfo from '~/components/map/airports/MapAirportBarsInfo.vue';
 import UiToggle from '~/components/ui/inputs/UiToggle.vue';
 import AirportProcedures from '~/components/features/vatsim/airport/AirportProcedures.vue';
-import { isVatGlassesActive } from '~/utils/data/vatglasses';
 import UiBlockTitle from '~/components/ui/text/UiBlockTitle.vue';
 import PopupAchievement from '~/components/popups/PopupAchievement.vue';
+import { getControllersForPosition } from '~/composables/render';
+import MapPopupIpfs from '~/components/map/popups/MapPopupIpfs.vue';
 
 const props = defineProps({
     overlay: {
@@ -317,7 +315,6 @@ const store = useStore();
 const dataStore = useDataStore();
 const mapStore = useMapStore();
 const config = useRuntimeConfig();
-const vatGlassesActive = isVatGlassesActive;
 const selectedAchievement = shallowRef<VatsimAchievementUser | null>(null);
 
 const ctafFrequency = computed(() => {
@@ -333,12 +330,12 @@ const airportInfo = computed(() => {
 });
 const isOffline = ref(false);
 
-const depAirport = computed(() => {
-    return dataStore.vatspy.value?.data.keyAirports.realIcao[pilot.value.flight_plan?.departure ?? ''];
+const depAirport = computed<AirportListItem | null>(() => {
+    return dataStore.vatsim.parsedAirports.value[pilot.value.flight_plan?.departure ?? ''];
 });
 
-const arrAirport = computed(() => {
-    return dataStore.vatspy.value?.data.keyAirports.realIcao[pilot.value.flight_plan?.arrival ?? ''];
+const arrAirport = computed<AirportListItem | null>(() => {
+    return dataStore.vatsim.parsedAirports.value[pilot.value.flight_plan?.arrival ?? ''];
 });
 
 const showOnMap = () => {
@@ -346,10 +343,10 @@ const showOnMap = () => {
 };
 
 const viewRoute = () => {
-    if (!depAirport.value || !arrAirport.value) return;
+    if (!depAirport.value?.airport || !arrAirport.value?.airport) return;
     const extent = boundingExtent([
-        [depAirport.value.lon, depAirport.value.lat],
-        [arrAirport.value.lon, arrAirport.value.lat],
+        [depAirport.value.airport.lon, depAirport.value.airport.lat],
+        [arrAirport.value.airport.lon, arrAirport.value.airport.lat],
     ]);
 
     props.overlay.data.tracked = false;
@@ -384,8 +381,8 @@ const atcSections = computed<InfoPopupSection[]>(() => {
     return list;
 });
 
-const depRunways = computed(() => depAirport.value ? getAirportRunways(depAirport.value.icao) : null);
-const arrRunways = computed(() => arrAirport.value ? getAirportRunways(arrAirport.value.icao) : null);
+const depRunways = computed(() => depAirport.value?.vgRunways ?? null);
+const arrRunways = computed(() => arrAirport.value?.vgRunways ?? null);
 
 const depBars = computed(() => {
     return depAirport.value && dataStore.vatsim.data.bars.value[depAirport.value.icao];
@@ -421,6 +418,14 @@ const sections = computed<InfoPopupSection[]>(() => {
             title: 'Speed & Altitude graph',
             collapsedDefault: true,
             collapsedDefaultOnce: true,
+            collapsible: true,
+        });
+    }
+
+    if (props.overlay?.data.ipfs && (props.overlay?.data.ipfs.atfcmStatus || getAtcList.value?.length)) {
+        sections.push({
+            key: 'ipfs',
+            title: 'vIFF Departure Info',
             collapsible: true,
         });
     }
@@ -480,9 +485,13 @@ const facilities = useFacilitiesIds();
 const getAtcList = computed<AtcPopupSection[]>(() => {
     const sections: AtcPopupSection[] = [];
 
-    const center = pilot.value.firs
-        ? dataStore.vatsim.data.firs.value.filter(x => pilot.value.firs!.includes(x.controller?.callsign ?? '')).map(x => x.controller!)
-        : null;
+    // This is intended to add this to recalculation dep
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+    dataStore.airportsList.value;
+
+    const additionalATC = getControllersForPosition([pilot.value?.longitude, pilot.value?.latitude]);
+
+    const center = additionalATC.filter(x => x.facility === facilities.CTR || x.facility === facilities.FSS);
 
     if (center?.length) {
         sections.push({
@@ -496,14 +505,21 @@ const getAtcList = computed<AtcPopupSection[]>(() => {
         });
     }
 
-    const controls = pilot.value.airport ? dataStore.vatsim.data.locals.value.filter(x => x.airport?.icao === pilot.value.airport) : null;
+    const controls = pilot.value.airport ? dataStore.airportsList.value[pilot.value.airport]?.atc : null;
+
+    if (controls) {
+        for (const atc of additionalATC) {
+            if (atc.facility === facilities.CTR || atc.facility === facilities.FSS || controls.some(x => x.callsign === atc.callsign)) continue;
+            controls.push(atc);
+        }
+    }
 
     if (controls?.length) {
-        const atis = controls.filter(x => x.isATIS).map(x => x.atc);
-        let ground = controls.filter(x => !x.isATIS && x.atc.facility !== facilities.APP).map(x => x.atc);
+        const atis = controls.filter(x => x.isATIS);
+        let ground = controls.filter(x => !x.isATIS && x.facility !== facilities.APP);
         ground = sortControllersByPosition(ground);
 
-        const app = controls.filter(x => !x.isATIS && x.atc.facility === facilities.APP).map(x => x.atc);
+        const app = controls.filter(x => !x.isATIS && x.facility === facilities.APP);
 
         if (atis.length) {
             sections.push({
@@ -605,6 +621,19 @@ useUpdateCallback(['short'], async () => {
         props.overlay.data.pilot = await $fetch<VatsimExtendedPilot>(`/api/data/vatsim/pilot/${ props.overlay.key }`, {
             timeout: 1000 * 15,
         });
+
+        if (pilot.value.status === 'depTaxi' || pilot.value.status === 'depGate') {
+            const previousIpfsData = props.overlay.data.ipfs;
+
+            props.overlay.data.ipfs = await $fetch<IpfsUser>(`/api/data/vatsim/pilot/${ props.overlay.key }/ipfs`, {
+                timeout: 1000 * 15,
+            }).catch(() => {
+            }) ?? previousIpfsData;
+        }
+        else if (props.overlay.data.ipfs) {
+            props.overlay.data.ipfs = undefined;
+        }
+
         isOffline.value = false;
     }
     catch (e: IFetchError | any) {

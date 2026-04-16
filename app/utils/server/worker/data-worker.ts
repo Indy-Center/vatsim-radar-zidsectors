@@ -1,12 +1,14 @@
 import type { BARS, BARSShort, VatsimStorage } from '../storage';
 import { radarStorage } from '../storage';
-import type { VatsimData } from '~/types/data/vatsim';
-import {
+import type {
+    VatsimData,
+    VatsimLiveDataMap,
+    VatsimShortenedController,
+} from '~/types/data/vatsim';
+import updateVatsimExtendedPilots, {
     updateVatsimDataStorage,
-    updateVatsimExtendedPilots,
     updateVatsimMandatoryDataStorage,
 } from '~/utils/server/vatsim/update';
-import { getAirportsList, getATCBounds, getLocalATC } from '~/utils/data/vatsim';
 import { influxDBWriteMain, influxDBWritePlans, initInfluxDB } from '~/utils/server/influx/influx';
 import { $fetch } from 'ofetch';
 import { initKafka } from '~/utils/server/worker/kafka';
@@ -15,7 +17,6 @@ import { getPlanInfluxDataForPilots, getShortInfluxDataForPilots } from '~/utils
 import { getRedis } from '~/utils/server/redis';
 import { defineCronJob, getVATSIMIdentHeaders } from '~/utils/server';
 import { initWholeBunchOfBackendTasks, navigraphUpdating } from '~/utils/server/tasks';
-import { getLocalText, isDebug } from '~/utils/server/debug';
 import { prisma } from '~/utils/server/prisma';
 
 import type { RadarNotam } from '~/utils/shared/vatsim';
@@ -205,8 +206,11 @@ defineCronJob('* * * * * *', async () => {
 
         radarStorage.vatsim.data = structuredClone(data);
 
-        const updateTimestamp = new Date(radarStorage.vatsim.data.general.update_timestamp).getTime();
+        const updateTimestamp = new Date(radarStorage.vatsim.data.general.update_timestamp!).getTime();
         radarStorage.vatsim.data.general.update_timestamp = new Date().toISOString();
+
+        delete radarStorage.vatsim.data.general.version;
+        delete radarStorage.vatsim.data.general.connected_clients;
 
         /* radarStorage.vatsim.data!.pilots.push({
             callsign: 'test',
@@ -245,6 +249,8 @@ defineCronJob('* * * * * *', async () => {
 
             objectAssign(pilot, {
                 ...newerData,
+                date: undefined,
+                deleted: undefined,
                 flight_plan: undefined,
             });
 
@@ -267,6 +273,8 @@ defineCronJob('* * * * * *', async () => {
 
             objectAssign(prefile, {
                 ...newerData,
+                date: undefined,
+                deleted: undefined,
                 flight_plan: undefined,
             });
 
@@ -286,147 +294,19 @@ defineCronJob('* * * * * *', async () => {
 
             if (newerData.deleted) return toDelete.atc.add(controller.callsign);
 
-            objectAssign(controller, newerData);
+            objectAssign(controller, {
+                ...newerData,
+                date: undefined,
+                deleted: undefined,
+            });
         });
-
-        const localControllers = isDebug() && getLocalText('controllers.json');
-
-        if (localControllers) {
-            radarStorage.vatsim.data.controllers = radarStorage.vatsim.data.controllers.concat(JSON.parse(localControllers)).filter(x => !x.callsign.endsWith('ATIS'));
-            radarStorage.vatsim.data.atis = radarStorage.vatsim.data.atis.concat(JSON.parse(localControllers)).filter(x => x.callsign.endsWith('ATIS'));
-        }
-
-        /*        radarStorage.vatsim.data.controllers.push({
-            callsign: 'MCO_APP',
-            cid: 6,
-            facility: (await import('~/utils/data/vatsim')).useFacilitiesIds().APP,
-            frequency: '122.122',
-            last_updated: '',
-            logon_time: '',
-            name: '',
-            rating: 0,
-            server: '',
-            text_atis: ['test3', 'Extending OCEAN', 'area'],
-            visual_range: 0,
-        });
-
-        radarStorage.vatsim.data.atis.push({
-            callsign: 'MCO_ATIS',
-            cid: 55,
-            facility: (await import('~/utils/data/vatsim')).useFacilitiesIds().APP,
-            frequency: '122.122',
-            last_updated: '',
-            logon_time: '',
-            name: '',
-            rating: 0,
-            server: '',
-            text_atis: ['test3', 'Extending OCEAN', 'area'],
-            visual_range: 0,
-        });
-
-        radarStorage.vatsim.data.controllers.push({
-            callsign: 'MCO_W_TWR',
-            cid: 4,
-            facility: (await import('~/utils/data/vatsim')).useFacilitiesIds().APP,
-            frequency: '122.122',
-            last_updated: '',
-            logon_time: '',
-            name: '',
-            rating: 0,
-            server: '',
-            text_atis: ['test3', 'Extending OCEAN', 'area'],
-            visual_range: 0,
-        });
-
-
-        radarStorage.vatsim.data.controllers.push({
-            callsign: 'MCO_W_GND',
-            cid: 44,
-            facility: (await import('~/utils/data/vatsim')).useFacilitiesIds().APP,
-            frequency: '122.122',
-            last_updated: '',
-            logon_time: '',
-            name: '',
-            rating: 0,
-            server: '',
-            text_atis: ['test3', 'Extending OCEAN', 'area'],
-            visual_range: 0,
-        });
-
-        radarStorage.vatsim.data.controllers.push({
-            callsign: 'MCO_W_GND',
-            cid: 10,
-            facility: (await import('~/utils/data/vatsim')).useFacilitiesIds().GND,
-            frequency: '122.122',
-            last_updated: '',
-            logon_time: '',
-            name: '',
-            rating: 0,
-            server: '',
-            text_atis: ['test3', 'Extending OCEAN', 'area'],
-            visual_range: 0,
-        });
-
-        radarStorage.vatsim.data.controllers.push({
-            callsign: 'MCO_E1_APP',
-            cid: 11,
-            facility: (await import('~/utils/data/vatsim')).useFacilitiesIds().GND,
-            frequency: '122.122',
-            last_updated: '',
-            logon_time: '',
-            name: '',
-            rating: 0,
-            server: '',
-            text_atis: ['test3', 'Extending OCEAN', 'area'],
-            visual_range: 0,
-        });
-
-        radarStorage.vatsim.data.controllers.push({
-            callsign: 'MCO_E2_APP',
-            cid: 11,
-            facility: (await import('~/utils/data/vatsim')).useFacilitiesIds().GND,
-            frequency: '122.122',
-            last_updated: '',
-            logon_time: '',
-            name: '',
-            rating: 0,
-            server: '',
-            text_atis: ['test3', 'Extending OCEAN', 'area'],
-            visual_range: 0,
-        });
-
-        radarStorage.vatsim.data.controllers.push({
-            callsign: 'PHX_A_APP',
-            cid: 2,
-            facility: (await import('~/utils/data/vatsim')).useFacilitiesIds().APP,
-            frequency: '122.122',
-            last_updated: '',
-            logon_time: '',
-            name: '',
-            rating: 0,
-            server: '',
-            text_atis: ['test3', 'Extending OCEAN', 'area'],
-            visual_range: 0,
-        });
-
-        radarStorage.vatsim.data.controllers.push({
-            callsign: 'A90_APP',
-            cid: 1,
-            facility: (await import('~/utils/data/vatsim')).useFacilitiesIds().APP,
-            frequency: '122.122',
-            last_updated: '',
-            logon_time: '',
-            name: '',
-            rating: 0,
-            server: '',
-            text_atis: ['test3', 'Extending OCEAN', 'area'],
-            visual_range: 0,
-        }); */
 
         const length = radarStorage.vatsim.data!.controllers.length;
 
         const allowedDuplicatingFacilities = ['FSS', 'CTR', 'APP', 'DEP'];
         const allowedDuplicatingSectors = radarStorage.vatsim.sectorsDataset.filter(x => allowedDuplicatingFacilities.some(y => x.callsign.endsWith(y)));
+
+        const duplicatedPositions: VatsimShortenedController[] = [];
 
         for (let i = 0; i < length; i++) {
             const controller = radarStorage.vatsim.data!.controllers[i];
@@ -467,16 +347,21 @@ defineCronJob('* * * * * *', async () => {
                 for (const setting of duplicatingSettings) {
                     if (controller.text_atis?.length && setting.regex.test(controller.callsign)) {
                         match = true;
-                        const atisText = controller.text_atis.join(' ').toLowerCase();
+                        const atisText = controller.text_atis.join(' ');
 
                         for (const [areaText, targetCallsign] of Object.entries(setting.mapping)) {
-                            if (atisText.includes(areaText.toLowerCase()) && controller.callsign !== targetCallsign) {
-                                radarStorage.vatsim.data.controllers.push({
+                            const areaTextRegExp = new RegExp(`\\b${ RegExp.escape(areaText) }\\b`, 'i');
+
+                            if (areaTextRegExp.test(atisText) && controller.callsign !== targetCallsign) {
+                                const duplicated = {
                                     ...controller,
                                     callsign: targetCallsign,
                                     duplicatedBy: controller.callsign,
                                     duplicated: true,
-                                });
+                                };
+
+                                radarStorage.vatsim.data.controllers.push(duplicated);
+                                duplicatedPositions.push(duplicated);
                             }
                         }
                     }
@@ -509,6 +394,18 @@ defineCronJob('* * * * * *', async () => {
                     duplicated: true,
                     duplicatedBy: controller.callsign,
                 });
+            }
+        }
+
+        for (const controller of duplicatedPositions) {
+            if (!controller.duplicatedBy?.endsWith('CTR')) continue;
+
+            const duplicatedPosition = duplicatedPositions.some(x => x.callsign === controller.callsign && !x.duplicatedBy?.endsWith('CTR'));
+            if (duplicatedPosition) {
+                radarStorage.vatsim.data.controllers = radarStorage.vatsim.data.controllers
+                    .filter(x => {
+                        return x.cid !== controller.cid || x.callsign !== controller.callsign || x.duplicatedBy !== controller.duplicatedBy;
+                    });
             }
         }
 
@@ -553,113 +450,13 @@ defineCronJob('* * * * * *', async () => {
 
         await updateVatsimExtendedPilots();
 
-        /* radarStorage.vatsim.data.controllers.push({
-            callsign: 'ULLL_R_CTR',
-            cid: 3,
-            facility: (await import('~/utils/data/vatsim')).useFacilitiesIds().CTR,
-            frequency: '135.600',
-            last_updated: '',
-            logon_time: '',
-            name: '',
-            rating: 0,
-            server: '',
-            text_atis: ['test3'],
-            visual_range: 0,
-        });*/
-
-        /*
-
-        radarStorage.vatsim.data.controllers.push({
-            callsign: 'PCT_APP',
-            cid: 4,
-            facility: (await import('~/utils/data/vatsim')).useFacilitiesIds().APP,
-            frequency: '122.122',
-            last_updated: '',
-            logon_time: '',
-            name: '',
-            rating: 0,
-            server: '',
-            text_atis: ['test3'],
-            visual_range: 0,
-        });
-
-
-        radarStorage.vatsim.data.atis.push({
-            callsign: 'I90_D_APP',
-            cid: 5,
-            facility: (await import('~/utils/data/vatsim')).useFacilitiesIds().APP,
-            frequency: '122.122',
-            last_updated: '',
-            logon_time: '',
-            name: '',
-            rating: 0,
-            server: '',
-            text_atis: ['test3'],
-            visual_range: 0,
-        });
-
-        radarStorage.vatsim.data.controllers.push({
-            callsign: 'ACT_L_APP',
-            cid: 6,
-            facility: (await import('~/utils/data/vatsim')).useFacilitiesIds().APP,
-            frequency: '122.122',
-            last_updated: '',
-            logon_time: '',
-            name: '',
-            rating: 0,
-            server: '',
-            text_atis: ['test3'],
-            visual_range: 0,
-        });
-
-        radarStorage.vatsim.data.controllers.push({
-            callsign: 'FSM_TWR',
-            cid: 1,
-            facility: (await import('~/utils/data/vatsim')).useFacilitiesIds().TWR,
-            frequency: '122.122',
-            last_updated: '',
-            logon_time: '',
-            name: '',
-            rating: 0,
-            server: '',
-            text_atis: ['test3'],
-            visual_range: 0,
-        });
-
-        radarStorage.vatsim.data.controllers.push({
-            callsign: 'CHI_X_APP',
-            cid: 11,
-            facility: (await import('~/utils/data/vatsim')).useFacilitiesIds().APP,
-            frequency: '122.122',
-            last_updated: '',
-            logon_time: '',
-            name: '',
-            rating: 0,
-            server: '',
-            text_atis: ['test3'],
-            visual_range: 0,
-        });
-
-        radarStorage.vatsim.data.controllers.push({
-            callsign: 'SCT_APP',
-            cid: 12,
-            facility: (await import('~/utils/data/vatsim')).useFacilitiesIds().APP,
-            frequency: '122.122',
-            last_updated: '',
-            logon_time: '',
-            name: '',
-            rating: 0,
-            server: '',
-            text_atis: ['test3'],
-            visual_range: 0,
-        });*/
-
         const regularData = excludeKeys(radarStorage.vatsim.data, {
             pilots: {
                 server: true,
                 qnh_i_hg: true,
                 flight_plan: true,
                 last_updated: true,
+                logon_time: true,
             },
             controllers: {
                 visual_range: true,
@@ -684,6 +481,7 @@ defineCronJob('* * * * * *', async () => {
                 visual_range: true,
                 flight_plan: true,
                 last_updated: true,
+                logon_time: true,
             },
         });
 
@@ -713,10 +511,6 @@ defineCronJob('* * * * * *', async () => {
             }),
             bars: shortBars,
         };
-        radarStorage.vatsim.firs = await getATCBounds();
-        radarStorage.vatsim.locals = await getLocalATC();
-        radarStorage.vatsim.airports = await getAirportsList();
-        radarStorage.vatsim.locals = radarStorage.vatsim.locals.filter(x => !x.atc.isBooking);
 
         const notams = await prisma.notams.findMany({
             where: {
@@ -765,6 +559,147 @@ defineCronJob('* * * * * *', async () => {
             });
         }
 
+        const shortDatafeed: VatsimLiveDataMap = {
+            pilots: [],
+            observers: [],
+            controllers: [],
+            atis: [],
+            prefiles: [],
+            map: {
+                aircraft_faa: [],
+                aircraft_short: [],
+                airports: [],
+                frequencies: [],
+                status: [],
+                codes: [],
+            },
+        };
+
+        for (const pilot of radarStorage.vatsim.regularData!.pilots) {
+            if (pilot.aircraft_faa && !shortDatafeed.map.aircraft_faa.includes(pilot.aircraft_faa)) shortDatafeed.map.aircraft_faa.push(pilot.aircraft_faa);
+            if (pilot.aircraft_short && !shortDatafeed.map.aircraft_short.includes(pilot.aircraft_short)) shortDatafeed.map.aircraft_short.push(pilot.aircraft_short);
+            if (pilot.departure && !shortDatafeed.map.airports.includes(pilot.departure)) shortDatafeed.map.airports.push(pilot.departure);
+            if (pilot.arrival && !shortDatafeed.map.airports.includes(pilot.arrival)) shortDatafeed.map.airports.push(pilot.arrival);
+            if (pilot.diverted_arrival && !shortDatafeed.map.airports.includes(pilot.diverted_arrival)) shortDatafeed.map.airports.push(pilot.diverted_arrival);
+            if (pilot.diverted_origin && !shortDatafeed.map.airports.includes(pilot.diverted_origin)) shortDatafeed.map.airports.push(pilot.diverted_origin);
+            if (pilot.airport && !shortDatafeed.map.airports.includes(pilot.airport)) shortDatafeed.map.airports.push(pilot.airport);
+            if (pilot.status && !shortDatafeed.map.status.includes(pilot.status)) shortDatafeed.map.status.push(pilot.status);
+            if (pilot.frequencies?.length) {
+                for (const frequency of pilot.frequencies) {
+                    if (!shortDatafeed.map.frequencies.includes(frequency)) shortDatafeed.map.frequencies.push(frequency);
+                }
+            }
+
+            shortDatafeed.pilots.push({
+                ci: pilot.cid,
+                n: pilot.name,
+                ca: pilot.callsign,
+                rp: pilot.pilot_rating,
+                rm: pilot.military_rating,
+                la: pilot.latitude,
+                lo: pilot.longitude,
+                al: pilot.altitude,
+                gs: pilot.groundspeed,
+                ts: pilot.transponder,
+                hd: pilot.heading,
+                qn: pilot.qnh_mb,
+                frq: pilot.frequencies.map(x => shortDatafeed.map.frequencies.indexOf(x)),
+                sim: pilot.sim,
+                tfa: !pilot.aircraft_faa ? undefined : shortDatafeed.map.aircraft_faa.indexOf(pilot.aircraft_faa),
+                tsh: !pilot.aircraft_short ? undefined : shortDatafeed.map.aircraft_short.indexOf(pilot.aircraft_short),
+                dep: !pilot.departure ? undefined : shortDatafeed.map.airports.indexOf(pilot.departure),
+                arr: !pilot.arrival ? undefined : shortDatafeed.map.airports.indexOf(pilot.arrival),
+                dva: !pilot.diverted_arrival ? undefined : shortDatafeed.map.airports.indexOf(pilot.diverted_arrival),
+                dvo: !pilot.diverted_origin ? undefined : shortDatafeed.map.airports.indexOf(pilot.diverted_origin),
+                s: !pilot.status ? undefined : shortDatafeed.map.status.indexOf(pilot.status),
+                dpd: pilot.depDist,
+                dpg: pilot.toGoDist,
+                ap: !pilot.airport ? undefined : shortDatafeed.map.airports.indexOf(pilot.airport),
+                rl: pilot.flight_rules,
+            });
+        }
+
+        for (const pilot of radarStorage.vatsim.regularData!.prefiles) {
+            if (pilot.aircraft_faa && !shortDatafeed.map.aircraft_faa.includes(pilot.aircraft_faa)) shortDatafeed.map.aircraft_faa.push(pilot.aircraft_faa);
+            if (pilot.aircraft_short && !shortDatafeed.map.aircraft_short.includes(pilot.aircraft_short)) shortDatafeed.map.aircraft_short.push(pilot.aircraft_short);
+            if (pilot.departure && !shortDatafeed.map.airports.includes(pilot.departure)) shortDatafeed.map.airports.push(pilot.departure);
+            if (pilot.arrival && !shortDatafeed.map.airports.includes(pilot.arrival)) shortDatafeed.map.airports.push(pilot.arrival);
+
+            shortDatafeed.prefiles.push({
+                ci: pilot.cid,
+                n: pilot.name,
+                ca: pilot.callsign,
+                tfa: !pilot.aircraft_faa ? undefined : shortDatafeed.map.aircraft_faa.indexOf(pilot.aircraft_faa),
+                tsh: !pilot.aircraft_short ? undefined : shortDatafeed.map.aircraft_short.indexOf(pilot.aircraft_short),
+                dep: !pilot.departure ? undefined : shortDatafeed.map.airports.indexOf(pilot.departure),
+                arr: !pilot.arrival ? undefined : shortDatafeed.map.airports.indexOf(pilot.arrival),
+                rl: pilot.flight_rules,
+            });
+        }
+
+        for (const atc of radarStorage.vatsim.regularData!.controllers) {
+            if (atc.frequency && !shortDatafeed.map.frequencies.includes(atc.frequency)) shortDatafeed.map.frequencies.push(atc.frequency);
+            if (atc.frequencies?.length) {
+                for (const frequency of atc.frequencies) {
+                    if (!shortDatafeed.map.frequencies.includes(frequency)) shortDatafeed.map.frequencies.push(frequency);
+                }
+            }
+
+            shortDatafeed.controllers.push({
+                ci: atc.cid,
+                n: atc.name,
+                ca: atc.callsign,
+                fa: atc.facility,
+                ra: atc.rating,
+                atis: atc.text_atis,
+                lg: atc.logon_time,
+                bk: atc.booking,
+                isBk: atc.isBooking,
+                dp: atc.duplicated,
+                dpBy: atc.duplicatedBy,
+                fr: shortDatafeed.map.frequencies.indexOf(atc.frequency),
+                frq: atc.frequencies?.map(x => shortDatafeed.map.frequencies.indexOf(x)),
+            });
+        }
+
+        for (const atc of radarStorage.vatsim.regularData!.atis) {
+            if (atc.atis_code && !shortDatafeed.map.codes.includes(atc.atis_code)) shortDatafeed.map.codes.push(atc.atis_code);
+            if (atc.frequency && !shortDatafeed.map.frequencies.includes(atc.frequency)) shortDatafeed.map.frequencies.push(atc.frequency);
+            if (atc.frequencies?.length) {
+                for (const frequency of atc.frequencies) {
+                    if (!shortDatafeed.map.frequencies.includes(frequency)) shortDatafeed.map.frequencies.push(frequency);
+                }
+            }
+
+            shortDatafeed.atis.push({
+                ci: atc.cid,
+                n: atc.name,
+                ca: atc.callsign,
+                fa: atc.facility,
+                ra: atc.rating,
+                atis: atc.text_atis,
+                lg: atc.logon_time,
+                bk: atc.booking,
+                isBk: atc.isBooking,
+                dp: atc.duplicated,
+                dpBy: atc.duplicatedBy,
+                fr: shortDatafeed.map.frequencies.indexOf(atc.frequency),
+                frq: atc.frequencies?.map(x => shortDatafeed.map.frequencies.indexOf(x)),
+                co: shortDatafeed.map.codes.indexOf(atc.atis_code ?? ''),
+            });
+        }
+
+        for (const atc of radarStorage.vatsim.regularData!.observers) {
+            shortDatafeed.observers.push({
+                ci: atc.cid,
+                n: atc.name,
+                ca: atc.callsign,
+                frq: atc.frequencies?.map(x => shortDatafeed.map.frequencies.indexOf(x)),
+            });
+        }
+
+        radarStorage.vatsim.compactDatafeed = shortDatafeed;
+
         await new Promise<void>((resolve, reject) => {
             const timeout = setTimeout(() => reject(new Error('Redis publish Failed by timeout')), 5000);
             redisPublisher.publish('data', JSON.stringify({
@@ -773,11 +708,9 @@ defineCronJob('* * * * * *', async () => {
                 mandatoryData: radarStorage.vatsim.mandatoryData,
                 extendedPilots: radarStorage.vatsim.extendedPilots,
                 extendedPilotsMap: radarStorage.vatsim.extendedPilotsMap,
-                firs: radarStorage.vatsim.firs,
-                locals: radarStorage.vatsim.locals,
-                airports: radarStorage.vatsim.airports,
                 transceivers: radarStorage.vatsim.transceivers,
                 notam: radarStorage.vatsim.notam,
+                compactDatafeed: radarStorage.vatsim.compactDatafeed,
             } satisfies Omit<VatsimStorage, 'kafka' | 'sectorsDataset'>), err => {
                 clearTimeout(timeout);
                 if (err) return reject(err);

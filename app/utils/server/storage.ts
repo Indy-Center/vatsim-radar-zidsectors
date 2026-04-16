@@ -1,15 +1,15 @@
-import type { VatSpyData, VatSpyDataFeature, VatSpyDataLocalATC } from '~/types/data/vatspy';
+import type { VatSpyData } from '~/types/data/vatspy';
 import type {
     VatsimData,
     VatsimDivision,
     VatsimEvent, VatsimExtendedPilot,
-    VatsimLiveData, VatsimLiveDataShort, VatsimMandatoryData,
+    VatsimMandatoryData,
     VatsimShortenedData,
     VatsimSubDivision,
-    VatsimBooking, VatsimNattrak, VatsimTransceiverFrequency, VatsimAchievementList,
+    VatsimBooking, VatsimNattrak, VatsimTransceiverFrequency, VatsimAchievementList, VatsimLiveDataMap,
+    VatsimLiveCompactData, VatsimLiveCompactDataShort, VatsimLiveDataShort, VatsimLiveData,
 } from '~/types/data/vatsim';
 import type { VatDataVersions } from '~/types/data';
-import type { MapAirport } from '~/types/map';
 import type { Feature, FeatureCollection, Geometry, MultiPolygon, Polygon } from 'geojson';
 import type { cycles } from '~/utils/server/navigraph/db';
 import type { PatreonInfo } from '~/types/data/patreon';
@@ -49,21 +49,44 @@ export interface VatglassesAirspace {
     owner?: string[];
     sectors: VatglassesSector[];
 }
+
+export interface VatglassesPosition {
+    id?: string;
+    countryId?: string;
+    colours?: {
+        online?: string[] | string;
+        hex: string;
+    }[];
+    pre?: string | string[];
+    type: string;
+    frequency?: string;
+    callsign: string;
+}
+
+export interface VatglassesAirport {
+    icao?: string;
+    pre?: string[];
+    callsign: string;
+    coord?: number[];
+    runways?: string[];
+    default?: boolean;
+    topdown?: string[] | {
+        runway: {
+            runway: string;
+            icao: string;
+        };
+        topdown: string[];
+    }[];
+    major?: string;
+    end?: {
+        [key: string]: { [key: string]: string };
+    };
+}
+
 export interface VatglassesData {
     [key: string]: {
         airports: {
-            [key: string]: {
-                pre?: string[];
-                callsign: string;
-                coord?: number[];
-                runways?: string[];
-                default?: boolean;
-                topdown?: string[];
-                major?: string;
-                end?: {
-                    [key: string]: { [key: string]: string };
-                };
-            };
+            [key: string]: VatglassesAirport;
         };
         airspace: VatglassesAirspace[];
         callsigns: {
@@ -77,16 +100,7 @@ export interface VatglassesData {
             };
         };
         positions: {
-            [key: string]: {
-                colours?: {
-                    online?: string[] | string;
-                    hex: string;
-                }[];
-                pre?: string | string[];
-                type: string;
-                frequency?: string;
-                callsign: string;
-            };
+            [key: string]: VatglassesPosition;
         };
     };
 }
@@ -118,6 +132,7 @@ export interface VatglassesDynamicData {
         };
     };
 }
+
 export interface VatglassesDynamicAPIData {
     version: string | null;
     data: VatglassesDynamicData | null;
@@ -207,11 +222,11 @@ export interface VatsimStorage {
     data: VatsimData | null;
     regularData: VatsimShortenedData | null;
     mandatoryData: VatsimMandatoryData | null;
+
+    compactDatafeed: VatsimLiveDataMap | null;
+
     extendedPilots: VatsimExtendedPilot[];
     extendedPilotsMap: { [key: string]: VatsimExtendedPilot };
-    firs: VatSpyDataFeature[];
-    locals: VatSpyDataLocalATC[];
-    airports: MapAirport[];
     transceivers: Record<string, VatsimTransceiverFrequency[]>;
     notam: RadarNotam | null;
     sectorsDataset: DatasetSector[];
@@ -295,11 +310,9 @@ export const radarStorage: RadarStorage = {
         data: null,
         regularData: null,
         mandatoryData: null,
+        compactDatafeed: null,
         extendedPilots: [],
         extendedPilotsMap: {},
-        firs: [],
-        locals: [],
-        airports: [],
         transceivers: {},
         sectorsDataset: [],
         notam: null,
@@ -356,9 +369,8 @@ export function getServerVatsimLiveData(): VatsimLiveData {
         general: storage.vatsim.regularData!.general,
         pilots: storage.vatsim.regularData!.pilots,
         observers: storage.vatsim.regularData!.observers,
-        firs: storage.vatsim.firs,
-        locals: storage.vatsim.locals,
-        airports: storage.vatsim.airports,
+        controllers: radarStorage.vatsim.data!.controllers,
+        atis: radarStorage.vatsim.data!.atis,
         prefiles: storage.vatsim.regularData!.prefiles,
         facilities: storage.vatsim.regularData!.facilities,
         ratings: storage.vatsim.regularData!.ratings,
@@ -374,11 +386,44 @@ export function getServerVatsimLiveShortData() {
         general: radarStorage.vatsim.data!.general,
         pilots: radarStorage.vatsim.regularData!.pilots,
         observers: radarStorage.vatsim.regularData!.observers,
-        firs: radarStorage.vatsim.firs,
-        locals: radarStorage.vatsim.locals,
+        controllers: radarStorage.vatsim.data!.controllers,
+        atis: radarStorage.vatsim.data!.atis,
         prefiles: radarStorage.vatsim.regularData!.prefiles,
-        airports: radarStorage.vatsim.airports,
         bars: radarStorage.vatsim.regularData!.bars,
         notam: radarStorage.vatsim.notam,
     } satisfies VatsimLiveDataShort;
+}
+
+export function getServerVatsimCompactData(): VatsimLiveCompactData {
+    const storage = radarStorage;
+
+    return {
+        general: storage.vatsim.regularData!.general,
+        pilots: storage.vatsim.compactDatafeed?.pilots ?? [],
+        observers: storage.vatsim.compactDatafeed?.observers ?? [],
+        controllers: radarStorage.vatsim.compactDatafeed?.controllers ?? [],
+        atis: radarStorage.vatsim.compactDatafeed?.atis ?? [],
+        prefiles: storage.vatsim.compactDatafeed?.prefiles ?? [],
+        map: radarStorage.vatsim.compactDatafeed?.map ?? {} as VatsimLiveCompactData['map'],
+        facilities: storage.vatsim.regularData!.facilities,
+        ratings: storage.vatsim.regularData!.ratings,
+        pilot_ratings: storage.vatsim.regularData!.pilot_ratings,
+        military_ratings: storage.vatsim.regularData!.military_ratings,
+        bars: radarStorage.vatsim.regularData!.bars,
+        notam: storage.vatsim.notam,
+    };
+}
+
+export function getServerVatsimCompactShortData() {
+    return {
+        general: radarStorage.vatsim.data!.general,
+        pilots: radarStorage.vatsim.compactDatafeed?.pilots ?? [],
+        observers: radarStorage.vatsim.compactDatafeed?.observers ?? [],
+        controllers: radarStorage.vatsim.compactDatafeed?.controllers ?? [],
+        atis: radarStorage.vatsim.compactDatafeed?.atis ?? [],
+        prefiles: radarStorage.vatsim.compactDatafeed?.prefiles ?? [],
+        map: radarStorage.vatsim.compactDatafeed?.map ?? {} as VatsimLiveCompactData['map'],
+        bars: radarStorage.vatsim.regularData!.bars,
+        notam: radarStorage.vatsim.notam,
+    } satisfies VatsimLiveCompactDataShort;
 }

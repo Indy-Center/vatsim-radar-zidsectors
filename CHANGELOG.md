@@ -1,5 +1,96 @@
 # Changelog
 
+# [2.0.0-alpha.7.3]
+
+## Alpha changes
+
+- Fixed some CTR controllers not showing correctly
+
+## Improvements and changes
+
+- Added local debug menu to test route parsing, add fake ATCs and enable beta VATGlasses feed, available in Settings → Debug mode
+
+# [2.0.0-alpha.7.2]
+
+## Alpha changes
+
+- Fixed VATGlasses dynamic not working
+- Restored FIRs borders
+- Fixed some runways parsing
+
+## Performance Improvements
+
+- Reworked datafeed to be more compact
+
+# [2.0.0-alpha.7.1]
+
+## Alpha Changes
+
+- Fixed VATGlasses crashing sometimes
+- Fixed VATGlasses combined mode (multiple fixes there)
+- Fixed rare crashes of airport/atc list
+- Fixed VATGlasses rerendering much more often than needed
+
+# [2.0.0-alpha.7]
+
+Sectors and airports list render has been reworked from scratch. Please take a moment to compare what you see with production Radar.
+
+## Improvements and changes
+
+- Bookings are now rendered in VATGlasses mode; bookings not showing up or duplicated facilities issues have all been fixed
+- VATGlasses controllers and TRACONs covering multiple airports are now properly shown in "ATC" tab of pilot or airport
+- Added active runway parsing from ATIS on airport/ATIS, as well as runway auto-select for VATGlasses
+- Airport counters update will be much faster now
+- "Booked until" will now be displayedvb for controllers on hover
+
+## Bug Fixes
+
+- Fixed many bookings not showing up
+
+## Performance Improvements
+
+- Significantly improved performance for VATGlasses mode
+- Significantly improved memory usage for VATGlasses mode, not consuming it for countries that are not rendered
+- Reduced traffic used on regular updates
+
+## Technical changes
+
+- Pilot "At Gate" status has been removed to improve performance. Only departing and arrived now remain
+- VATGlasses combined mode is now always rendered on device, leading to a very slow initial render. This mode is not widely used, yet it had separate server instance
+- Reworked controllers/sectors logic to be on frontend, leading to improved server worker update time, reduced delay, and a better code in general, for a small performance cost
+
+# [2.0.0-alpha.6.4]
+
+- Implement ZME TRACON Duplication
+- Add MMEX ACC TMA duplicating for VATMEX
+- Add HCF Center and TRACONs to ATC duplication
+- Duplicated controllers are now properly filtered from airport if a real controller is sitting there
+- If one position is duplicated by both CTR and APP controllers, CTR will no longer show up
+- Fixed duplicated color when custom setting is used
+- Duplicating RegExp will no longer trigger by random words in ATIS
+
+# [2.0.0-alpha.6.3]
+
+## Preprod changes
+
+Those changes are production candidates!
+
+- Fixed coordinate format `6800E` not parsing correctly
+- Fixed some terminal waypoints replacing enroute waypoints if they have same identifier and region
+
+## Alpha changes
+
+- Fixed a setting to hide map airports not working
+
+# [2.0.0-alpha.6.2]
+
+## Alpha changes
+
+- Fixed map crash when restoring overlay of a pilot or atc that gone offline
+- Added longtap support for collapsed airports on touch devices to view arrival rate instead of it showing on click
+- Fixed overlays not saving on mobile
+- Fixed airport dashboard crashing on opening
+
 # [2.0.0-alpha.6.1]
 
 This release is focused on V2 feedback.
@@ -206,6 +297,22 @@ Known Issues:
 - Reworked airports render for better memory usage
 - Removed memory consumption on SimAware data
 - Reduced gates memory consumption on render
+
+# [1.2.4-7]
+
+- Added vIFF & CDM system integration
+
+# [1.2.4-6.4]
+
+- Fixed coordinate format `6800E` not parsing correctly
+- Fixed some terminal waypoints replacing enroute waypoints if they have same identifier and region
+- Implement ZME TRACON Duplication
+- Add MMEX ACC TMA duplicating for VATMEX
+- Add HCF Center and TRACONs to ATC duplication
+- Duplicated controllers are now properly filtered from airport if a real controller is sitting there
+- If one position is duplicated by both CTR and APP controllers, CTR will no longer show up
+- Fixed duplicated color when custom setting is used
+- Duplicating RegExp will no longer trigger by random words in ATIS
 
 # [1.2.4-6.3]
 

@@ -431,3 +431,7 @@ export function globalComputed<T>(
     const _computed = computed<T>(getter, debugOptions) as ComputedRef<T>;
     return () => _computed;
 }
+
+export const isIframe = computed(() => {
+    return useRoute().query.iframe;
+});

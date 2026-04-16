@@ -176,6 +176,7 @@ const list = useCookie<string[]>('metars', {
     path: '/',
     secure: true,
     default: () => [],
+    sameSite: 'none',
 });
 const cached = ref<VatsimAirportDataIcao[]>([]);
 

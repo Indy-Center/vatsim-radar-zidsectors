@@ -4,7 +4,7 @@ import type { NavigraphAirportData } from '~/types/data/navigraph';
 import VectorLayer from 'ol/layer/Vector.js';
 import VectorSource from 'ol/source/Vector.js';
 import { FEATURES_Z_INDEX } from '~/composables/render';
-import type { MapAirportRender, MapAirportVatspy } from '~/types/map';
+import type { MapAirportRender } from '~/types/map';
 import { getRenderAirportsList, getInitialAirportsList } from '~/composables/render/airports';
 import type { AirportListItem } from '~/composables/render/airports';
 import { useUpdateCallback } from '~/composables';
@@ -14,6 +14,7 @@ import { setMapGatesRunways } from '~/composables/render/airports/layers/gates';
 import type { AmdbLayerName } from '@navigraph/amdb';
 import { airportLayoutStyles } from '~/composables/navigraph/layouts';
 import { setMapNavigraphLayout } from '~/composables/render/airports/layers/layout';
+import { isHideMapObject } from '~/composables/settings';
 
 defineOptions({
     render: () => null,
@@ -39,8 +40,9 @@ const now = new Date();
 const end = ref(new Date());
 const mapSettings = computed(() => store.mapSettings);
 
+const dataStore = useDataStore();
 const airportsList = shallowRef<MapAirportRender[]>([]);
-const visibleAirports = shallowRef<MapAirportVatspy[]>([]);
+const visibleAirports = shallowRef<DataAirport[]>([]);
 const airports = shallowRef<AirportListItem[]>([]);
 
 watch(mapSettings, val => {
@@ -52,21 +54,23 @@ watch(mapSettings, val => {
 });
 
 const getShownAirports = computed(() => {
-    let list = airports.value.filter(x => x.bookings.length > 0 || airportsList.value.some(y => y.airport.icao === x.airport.icao));
+    const airportsListSet = new Set(airportsList.value.map(x => x.airport.icao));
+
+    let list = airports.value.filter(x => airportsListSet.has(x.icao));
 
     switch (store.mapSettings.airportsMode) {
         case 'staffedOnly':
             list = list.filter(x => {
-                const hasForAircraft = mapStore.overlays.some(y => y.type === 'pilot' && (y.data.pilot.flight_plan?.departure === x.airport.icao || y.data.pilot.flight_plan?.arrival === x.airport.icao));
+                const hasForAircraft = mapStore.overlays.some(y => y.type === 'pilot' && (y.data.pilot.flight_plan?.departure === x.icao || y.data.pilot.flight_plan?.arrival === x.icao));
 
-                return hasForAircraft || mapStore.overlays.some(y => y.type === 'airport' && y.key === x.airport.icao) || x.arrAtc.length || x.localAtc.length;
+                return hasForAircraft || mapStore.overlays.some(y => y.type === 'airport' && y.key === x.icao) || x.atc.length;
             });
             break;
         case 'staffedAndGroundTraffic':
             list = list.filter(x => {
-                const hasForAircraft = mapStore.overlays.some(y => y.type === 'pilot' && (y.data.pilot.flight_plan?.departure === x.airport.icao || y.data.pilot.flight_plan?.arrival === x.airport.icao));
+                const hasForAircraft = mapStore.overlays.some(y => y.type === 'pilot' && (y.data.pilot.flight_plan?.departure === x.icao || y.data.pilot.flight_plan?.arrival === x.icao));
 
-                return hasForAircraft || mapStore.overlays.some(y => y.type === 'airport' && y.key === x.airport.icao) || x.arrAtc.length || x.localAtc.length || x.aircraftList.groundArr?.length || x.aircraftList.groundDep?.length;
+                return hasForAircraft || mapStore.overlays.some(y => y.type === 'airport' && y.key === x.icao) || x.atc.length || x.aircraft.groundArr?.length || x.aircraft.groundDep?.length;
             });
             break;
     }
@@ -147,7 +151,7 @@ onMounted(() => {
     map.value.addLayer(navigraphLayer);
     map.value.addLayer(gatesLayer);
 
-    useUpdateCallback(['short', 'extent', updateRelatedSettings], async newValue => {
+    useUpdateCallback(['short', 'extent', dataStore.airportsList, updateRelatedSettings], async newValue => {
         const result = await getInitialAirportsList({ navigraphData, source: airportsSource, map: map.value! });
         if (!result) return;
         airportsList.value = result.all;
@@ -160,6 +164,14 @@ onMounted(() => {
     const mapRender = computed(() => !mapStore.renderedAirports?.length);
 
     watch([airportsList, mapSettings, mapRender], async () => {
+        if (isHideMapObject('airports')) {
+            airportsSource?.clear();
+            globalMapEntities.airports = null;
+            navigraphSource?.clear();
+            gatesSource?.clear();
+            return;
+        }
+
         airports.value = await getRenderAirportsList({ airports: airportsList.value, visibleAirports: visibleAirports.value });
 
         setMapAirports({
