@@ -528,7 +528,8 @@ export async function getFlightPlanWaypoints({
                         speedLimit: x.speedLimit,
                     } satisfies NavigraphNavDataEnrouteWaypointPartial)) ?? []);
 
-                    const enrouteTransition = procedure?.transitions.enroute.find(x => x.name === entries[1] || x.name === entries[2]);
+                    const enrouteTransition = procedure?.transitions.enroute.find(x => depSid?.transitions.includes(x.name) || x.name === entries[1] || x.name === entries[2]);
+
                     if (enrouteTransition) {
                         waypoints.push(...enrouteTransition.waypoints.map(x => ({
                             title: procedure?.procedure.identifier,
