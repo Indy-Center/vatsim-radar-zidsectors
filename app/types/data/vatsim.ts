@@ -375,6 +375,7 @@ export interface IpfsUser {
     aobt: string;
     atot: string;
     eta: string;
+    isCdm: boolean;
     onTime: '0' | '1';
     atfcmStatus: ViffStatus;
     mostPenalizingAirspace: string;
