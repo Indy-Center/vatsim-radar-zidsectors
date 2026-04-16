@@ -54,6 +54,12 @@ async function receiveMessage(event: MessageEvent) {
         });
         location.reload();
     }
+
+    if (data && 'action' in data) {
+        if (data.action === 'logout') {
+            document.location.href = '/api/user/logout';
+        }
+    }
 }
 
 onMounted(() => {

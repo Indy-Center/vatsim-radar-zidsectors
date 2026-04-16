@@ -298,6 +298,10 @@ Known Issues:
 - Removed memory consumption on SimAware data
 - Reduced gates memory consumption on render
 
+# [1.2.4-7]
+
+- Added vIFF & CDM system integration
+
 # [1.2.4-6.4]
 
 - Fixed coordinate format `6800E` not parsing correctly

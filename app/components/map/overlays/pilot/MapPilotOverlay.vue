@@ -104,6 +104,12 @@
                 @viewRoute="viewRoute()"
             />
         </template>
+        <template #ipfs>
+            <map-popup-ipfs
+                :ipfs="overlay.data.ipfs!"
+                :pilot
+            />
+        </template>
         <template #graph>
             <map-popup-flight-graph :pilot/>
         </template>
@@ -253,7 +259,7 @@ import type { InfoPopupSection } from '~/components/popups/PopupOverlay.vue';
 import type {
     VatsimAchievementUser,
     VatsimExtendedPilot,
-    VatsimShortenedController,
+    VatsimShortenedController, IpfsUser,
 } from '~/types/data/vatsim';
 import TrackIcon from 'assets/icons/kit/track.svg?component';
 import LocationIcon from '~/assets/icons/kit/location.svg?component';
@@ -285,6 +291,7 @@ import AirportProcedures from '~/components/features/vatsim/airport/AirportProce
 import UiBlockTitle from '~/components/ui/text/UiBlockTitle.vue';
 import PopupAchievement from '~/components/popups/PopupAchievement.vue';
 import { getControllersForPosition } from '~/composables/render';
+import MapPopupIpfs from '~/components/map/popups/MapPopupIpfs.vue';
 
 const props = defineProps({
     overlay: {
@@ -411,6 +418,14 @@ const sections = computed<InfoPopupSection[]>(() => {
             title: 'Speed & Altitude graph',
             collapsedDefault: true,
             collapsedDefaultOnce: true,
+            collapsible: true,
+        });
+    }
+
+    if (props.overlay?.data.ipfs && (props.overlay?.data.ipfs.atfcmStatus || getAtcList.value?.length)) {
+        sections.push({
+            key: 'ipfs',
+            title: 'vIFF Departure Info',
             collapsible: true,
         });
     }
@@ -606,6 +621,19 @@ useUpdateCallback(['short'], async () => {
         props.overlay.data.pilot = await $fetch<VatsimExtendedPilot>(`/api/data/vatsim/pilot/${ props.overlay.key }`, {
             timeout: 1000 * 15,
         });
+
+        if (pilot.value.status === 'depTaxi' || pilot.value.status === 'depGate') {
+            const previousIpfsData = props.overlay.data.ipfs;
+
+            props.overlay.data.ipfs = await $fetch<IpfsUser>(`/api/data/vatsim/pilot/${ props.overlay.key }/ipfs`, {
+                timeout: 1000 * 15,
+            }).catch(() => {
+            }) ?? previousIpfsData;
+        }
+        else if (props.overlay.data.ipfs) {
+            props.overlay.data.ipfs = undefined;
+        }
+
         isOffline.value = false;
     }
     catch (e: IFetchError | any) {

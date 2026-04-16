@@ -475,6 +475,7 @@ const getRouteZoom = (): number | null => {
 
 const observerCookie = useCookie<number | false>('observer-for-cid', {
     path: '/',
+    sameSite: 'none',
     secure: true,
 });
 

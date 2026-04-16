@@ -298,7 +298,7 @@ const distance = computed(() => getAircraftDistance(props.pilot));
 
 const getDistAndTime = computed(() => {
     try {
-        if (!distance.value?.toGoDist || !distance.value.toGoTime) return null;
+        if (!distance.value?.toGoDist || !distance.value.toGoTime || distance.value.toGoTime === Infinity) return null;
 
         const dist = Math.round(distance.value.toGoDist);
         const goTime = new Date(distance.value.toGoTime!);
@@ -310,7 +310,6 @@ const getDistAndTime = computed(() => {
     }
     catch (e) {
         useRadarError(e);
-        console.log(distance);
         return null;
     }
 });

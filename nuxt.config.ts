@@ -130,6 +130,9 @@ export default defineNuxtConfig({
         FAA_NOTAMS_CLIENT_ID: process.env.FAA_NOTAMS_CLIENT_ID,
         FAA_NOTAMS_CLIENT_SECRET: process.env.FAA_NOTAMS_CLIENT_SECRET,
 
+        VIFF_API_TOKEN: process.env.VIFF_API_TOKEN,
+        AERONAV_API_TOKEN: process.env.AERONAV_API_TOKEN,
+
         public: {
             DOMAIN: process.env.DOMAIN,
             IS_DOWN: process.env.IS_DOWN,

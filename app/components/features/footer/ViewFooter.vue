@@ -8,7 +8,6 @@
                 v-if="dataStore.versions.value?.navigraph && (!isMobile || mapStore.isNavigraphUpdating)"
                 class="map-footer_left_section"
                 title="Navigraph Data AIRAC"
-                @click="!store.user?.hasFms ? store.airacPopup = true : undefined"
             >
                 <navigation-airac/>
             </div>

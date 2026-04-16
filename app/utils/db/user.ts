@@ -52,6 +52,8 @@ export async function getDBUserToken(event: H3Event, user: RequiredDBUser, userT
         expires: refreshMaxDate,
         secure: true,
         httpOnly: true,
+        sameSite: 'none',
+        path: '/',
     });
 
     return token;
