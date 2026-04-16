@@ -1,16 +1,22 @@
 <template>
     <div class="ipfs-info">
-        <div class="ipfs-info__cols">
+        <div
+            class="ipfs-info__cols"
+            :class="{ 'ipfs-info__cols--rows': blocks.length >= 4 }"
+        >
             <ui-text-block
-                :bottom-items="[`${ obt }z`]"
+                v-for="(block, index) in blocks"
+                :key="block.title"
+                :bottom-items="[block.value]"
                 text-align="center"
-                :top-items="['OBT']"
+                :top-items="[block.title]"
             >
                 <template #top="{ item }">
                     <div class="ipfs-info__info">
                         <span>{{item}}</span>
                         <ui-tooltip
-                            location="right"
+                            v-if="block.hint"
+                            :location="getTooltipLocation(index)"
                             width="250px"
                         >
                             <template #activator>
@@ -18,13 +24,16 @@
                                     <question-icon width="16"/>
                                 </div>
                             </template>
-                            The time your aircraft is expected to be ready for start-up and pushback. You must be ready within ±5 minutes and call “Ready for start-up” after receiving clearance.<br><br>
-
-                            If you have not reported “Ready for start-up” by TOBT+5, your flight plan will be suspended.
+                            {{block.hint}}
                         </ui-tooltip>
                     </div>
                 </template>
             </ui-text-block>
+        </div>
+        <div
+            v-if="status || ipfs.cdmData.depInfo"
+            class="ipfs-info__cols"
+        >
             <ui-text-block
                 v-if="status"
                 :bottom-items="[status]"
@@ -32,17 +41,7 @@
                 :top-items="['Status']"
             />
             <ui-text-block
-                v-if="ipfs.taxi"
-                :bottom-items="[`${ ipfs.taxi } mins`]"
-                text-align="center"
-                :top-items="['Exp. taxi time']"
-            />
-        </div>
-        <div
-            v-if="ipfs.cdmData.depInfo"
-            class="ipfs-info__cols"
-        >
-            <ui-text-block
+                v-if="ipfs.cdmData.depInfo"
                 :bottom-items="[ipfs.cdmData.depInfo.split('/').join(' | ')]"
                 text-align="center"
                 :top-items="['Departure info']"
@@ -53,9 +52,6 @@
             type="info"
         >
             Reason for the CTOT: {{ ipfs.cdmData.reason }}
-            <template v-if="ipfs.mostPenalizingAirspace">
-                (Due to airspace: {{ipfs.mostPenalizingAirspace}})
-            </template>
         </ui-notification>
         <div
             v-if="store.user?.cid === props.pilot.cid.toString()"
@@ -79,9 +75,7 @@
                         </template>
                         OBT – Off-Blocks Time<br><br>
 
-                        The time your aircraft is expected to be ready for start-up and pushback. You must be ready within ±5 minutes and call “Ready for start-up” after receiving clearance.<br><br>
-
-                        If you have not reported “Ready for start-up” by OBT+5, your flight plan will be suspended.
+                        The time your aircraft is expected to be ready for start-up and pushback.
                     </ui-tooltip>
                 </template>
             </ui-block-title>
@@ -92,6 +86,13 @@
                     href="https://vats.im/vdgs"
                     target="_blank"
                 >VDGS Panel</a>
+            </ui-notification>
+
+            <ui-notification
+                v-if="props.ipfs?.atfcmStatus.startsWith('FLS')"
+                type="error"
+            >
+                Your slot has been suspended. Please, update your OBT
             </ui-notification>
 
             <div class="ipfs-info__cols">
@@ -131,6 +132,7 @@ import UiButton from '~/components/ui/buttons/UiButton.vue';
 import UiInputNumber from '~/components/ui/inputs/UiInputNumber.vue';
 import UiNotification from '~/components/ui/data/UiNotification.vue';
 import UiTooltip from '~/components/ui/data/UiTooltip.vue';
+import type { TooltipLocation } from '~/components/ui/data/UiTooltip.vue';
 import UiTextBlock from '~/components/ui/text/UiTextBlock.vue';
 import UiBlockTitle from '~/components/ui/text/UiBlockTitle.vue';
 
@@ -147,23 +149,78 @@ const props = defineProps({
 
 const store = useStore();
 
-const obt = computed(() => {
-    const ipfs = props.ipfs;
+interface Block {
+    title: string;
+    value: string;
+    hint?: string;
+}
 
-    if (ipfs.cdmData.tsat) return ipfs.cdmData.tsat.slice(0, 4);
-    if (ipfs.ctot) {
-        const hours = parseInt(ipfs?.ctot.slice(0, 2));
-        let minutes = parseInt(ipfs?.ctot.slice(2, 4));
-        minutes -= ipfs.taxi ?? 0;
+function getTooltipLocation(index: number): TooltipLocation {
+    if (blocks.value.length === 2 || blocks.value.length === 4) {
+        return index % 2 === 0 ? 'right' : 'left';
+    }
+
+    if (blocks.value.length === 3) {
+        if (index === 0) return 'right';
+        if (index === 1) return 'bottom';
+        if (index === 2) return 'left';
+    }
+
+    return 'bottom';
+}
+
+const blocks = computed(() => {
+    const items: Block[] = [];
+
+    if (props.ipfs?.isCdm && (props.ipfs.tobt || props.ipfs.obt || props.ipfs.eobt)) {
+        items.push({
+            title: props.ipfs.obt ? 'OBT' : props.ipfs.tobt ? 'TOBT' : 'EOBT',
+            value: `${ (props.ipfs.tobt || props.ipfs.obt || props.ipfs.eobt).slice(0, 4) }z`,
+            hint: 'Target Off-Blocks Time. The time your aircraft is expected to be ready for start-up and pushback',
+        });
+    }
+
+    if (!props.ipfs?.isCdm && (props.ipfs?.obt || props.ipfs?.eobt)) {
+        items.push({
+            title: props.ipfs.obt ? 'OBT' : 'EOBT',
+            value: `${ (props.ipfs.obt || props.ipfs.eobt).slice(0, 4) }z`,
+            hint: 'Target Off-Blocks Time. The time your aircraft is expected to be ready for start-up and pushback',
+        });
+    }
+
+    if (props.ipfs?.isCdm && props.ipfs.cdmData.tsat) {
+        items.push({
+            title: 'TSAT',
+            value: `${ props.ipfs.cdmData.tsat.slice(0, 4) }z`,
+            hint: 'Target Start-Up Approval Time. The time when start-up clearance can be expected, ±5 minutes of TSAT',
+        });
+    }
+
+    if (props.ipfs.cdmData.ctot) {
+        const hours = parseInt(props.ipfs?.ctot.slice(0, 2));
+        let minutes = parseInt(props.ipfs?.ctot.slice(2, 4));
+        minutes -= props.ipfs.taxi ?? 0;
         let total = (hours * 60) + minutes;
         total = (total + 1440) % 1440;
 
-        return `${ ('0' + Math.floor(total / 60)).slice(-2) }${ ('0' + (total % 60)).slice(-2) }`;
-    }
-    if (ipfs.obt) return ipfs.obt.slice(0, 4);
-    if (ipfs.eobt) return ipfs.eobt.slice(0, 4);
+        const value = `${ ('0' + Math.floor(total / 60)).slice(-2) }${ ('0' + (total % 60)).slice(-2) }z`;
 
-    return '';
+        items.push({
+            title: 'CTOT',
+            value,
+            hint: 'Calculated Take-Off Time. The time assigned for your take-off to ensure traffic flow and airspace management',
+        });
+    }
+
+    if (props.ipfs.mostPenalizingAirspace) {
+        items.push({
+            title: 'REGUL',
+            value: props.ipfs.mostPenalizingAirspace,
+            hint: (props.ipfs.mostPenalizingAirspace.endsWith('-E') || props.ipfs.mostPenalizingAirspace.endsWith('-O')) ? 'Regulation due to destination airport' : 'Airspace regulation',
+        });
+    }
+
+    return items;
 });
 
 const hrs = ref(0);
@@ -207,10 +264,11 @@ const status = computed(() => {
         case ViffStatus.DES:
             return 'De-suspended';
         case ViffStatus.SRM:
-            return 'Slot Revised/Updated';
+            return 'Slot Revised';
         case ViffStatus.SAM:
             return 'Slot Allocated';
         case ViffStatus.ATC_ACTIV:
+            return 'Departing';
         default:
             return '';
     }
