@@ -1,7 +1,7 @@
 <template>
     <div class="ipfs-info">
         <div class="ipfs-info__cols">
-            <common-info-block
+            <ui-text-block
                 :bottom-items="[`${ obt }z`]"
                 text-align="center"
                 :top-items="['OBT']"
@@ -9,7 +9,7 @@
                 <template #top="{ item }">
                     <div class="ipfs-info__info">
                         <span>{{item}}</span>
-                        <common-tooltip
+                        <ui-tooltip
                             location="right"
                             width="250px"
                         >
@@ -21,17 +21,17 @@
                             The time your aircraft is expected to be ready for start-up and pushback. You must be ready within ±5 minutes and call “Ready for start-up” after receiving clearance.<br><br>
 
                             If you have not reported “Ready for start-up” by TOBT+5, your flight plan will be suspended.
-                        </common-tooltip>
+                        </ui-tooltip>
                     </div>
                 </template>
-            </common-info-block>
-            <common-info-block
+            </ui-text-block>
+            <ui-text-block
                 v-if="status"
                 :bottom-items="[status]"
                 text-align="center"
                 :top-items="['Status']"
             />
-            <common-info-block
+            <ui-text-block
                 v-if="ipfs.taxi"
                 :bottom-items="[`${ ipfs.taxi } mins`]"
                 text-align="center"
@@ -42,13 +42,13 @@
             v-if="ipfs.cdmData.depInfo"
             class="ipfs-info__cols"
         >
-            <common-info-block
+            <ui-text-block
                 :bottom-items="[ipfs.cdmData.depInfo.split('/').join(' | ')]"
                 text-align="center"
                 :top-items="['Departure info']"
             />
         </div>
-        <common-notification
+        <ui-notification
             v-if="ipfs.cdmData.reason"
             type="info"
         >
@@ -56,19 +56,19 @@
             <template v-if="ipfs.mostPenalizingAirspace">
                 (Due to airspace: {{ipfs.mostPenalizingAirspace}})
             </template>
-        </common-notification>
+        </ui-notification>
         <div
             v-if="store.user?.cid === props.pilot.cid.toString()"
             class="ipfs-info_obt"
         >
-            <common-block-title
+            <ui-block-title
                 class="ipfs-info_obt_title"
                 remove-margin
             >
                 Target Off-Block time
 
                 <template #append>
-                    <common-tooltip
+                    <ui-tooltip
                         location="left"
                         width="250px"
                     >
@@ -82,41 +82,41 @@
                         The time your aircraft is expected to be ready for start-up and pushback. You must be ready within ±5 minutes and call “Ready for start-up” after receiving clearance.<br><br>
 
                         If you have not reported “Ready for start-up” by OBT+5, your flight plan will be suspended.
-                    </common-tooltip>
+                    </ui-tooltip>
                 </template>
-            </common-block-title>
+            </ui-block-title>
 
-            <common-notification type="info">
+            <ui-notification type="info">
                 More information about your flight: <a
                     class="__link"
                     href="https://vats.im/vdgs"
                     target="_blank"
                 >VDGS Panel</a>
-            </common-notification>
+            </ui-notification>
 
             <div class="ipfs-info__cols">
-                <common-input-number
+                <ui-input-number
                     v-model="hrs"
                     :input-attrs="{ max: 23, min: 0 }"
                     placeholder="HH"
                 >
                     Hours
-                </common-input-number>
-                <common-input-number
+                </ui-input-number>
+                <ui-input-number
                     v-model="mins"
                     :input-attrs="{ max: 59, min: 0 }"
                     placeholder="MM"
                 >
                     Minutes
-                </common-input-number>
-                <common-button
+                </ui-input-number>
+                <ui-button
                     class="ipfs-info_obt_btn"
                     :disabled="saving"
                     size="M"
                     @click="saveEstimate"
                 >
                     Save
-                </common-button>
+                </ui-button>
             </div>
         </div>
     </div>
@@ -126,13 +126,13 @@
 import type { PropType } from 'vue';
 import { ViffStatus } from '~/types/data/vatsim';
 import type { IpfsUser, VatsimExtendedPilot } from '~/types/data/vatsim';
-import CommonInfoBlock from '~/components/common/blocks/CommonInfoBlock.vue';
-import CommonNotification from '~/components/common/basic/CommonNotification.vue';
-import CommonTooltip from '~/components/common/basic/CommonTooltip.vue';
 import QuestionIcon from 'assets/icons/basic/question.svg?component';
-import CommonBlockTitle from '~/components/common/blocks/CommonBlockTitle.vue';
-import CommonInputNumber from '~/components/common/basic/CommonInputNumber.vue';
-import CommonButton from '~/components/common/basic/CommonButton.vue';
+import UiButton from '~/components/ui/buttons/UiButton.vue';
+import UiInputNumber from '~/components/ui/inputs/UiInputNumber.vue';
+import UiNotification from '~/components/ui/data/UiNotification.vue';
+import UiTooltip from '~/components/ui/data/UiTooltip.vue';
+import UiTextBlock from '~/components/ui/text/UiTextBlock.vue';
+import UiBlockTitle from '~/components/ui/text/UiBlockTitle.vue';
 
 const props = defineProps({
     pilot: {
