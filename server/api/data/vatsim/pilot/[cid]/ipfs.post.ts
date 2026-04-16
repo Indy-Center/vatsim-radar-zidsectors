@@ -1,7 +1,6 @@
 import { handleH3Error } from '~/utils/backend/h3';
 import { radarStorage } from '~/utils/backend/storage';
 import type { IpfsUser } from '~/types/data/vatsim';
-import { isDebug } from '~/utils/backend/debug';
 import { findAndRefreshUserByCookie } from '~/utils/backend/user';
 
 const obtRegex = /^\d{4}$/;

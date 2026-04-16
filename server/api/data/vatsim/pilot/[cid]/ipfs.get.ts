@@ -1,7 +1,6 @@
 import { handleH3Error } from '~/utils/backend/h3';
 import { radarStorage } from '~/utils/backend/storage';
 import type { IpfsUser } from '~/types/data/vatsim';
-import { isDebug } from '~/utils/backend/debug';
 
 export default defineEventHandler(async (event): Promise<IpfsUser | undefined> => {
     const cid = getRouterParam(event, 'cid');
