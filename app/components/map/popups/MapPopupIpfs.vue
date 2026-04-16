@@ -196,10 +196,10 @@ function getTooltipLocation(index: number): TooltipLocation {
 const blocks = computed(() => {
     const items: Block[] = [];
 
-    if (props.ipfs?.isCdm && (props.ipfs.tobt || props.ipfs.obt || props.ipfs.eobt)) {
+    if (props.ipfs?.isCdm && (props.ipfs.cdmData.tobt || props.ipfs.obt || props.ipfs.eobt)) {
         items.push({
-            title: props.ipfs.obt ? 'OBT' : props.ipfs.tobt ? 'TOBT' : 'EOBT',
-            value: `${ (props.ipfs.tobt || props.ipfs.obt || props.ipfs.eobt).slice(0, 4) }z`,
+            title: props.ipfs.cdmData.tobt ? 'TOBT' : props.ipfs.obt ? 'OBT' : 'EOBT',
+            value: `${ (props.ipfs.cdmData.tobt || props.ipfs.obt || props.ipfs.eobt).slice(0, 4) }z`,
             hint: 'Target Off-Blocks Time. The time your aircraft is expected to be ready for start-up and pushback',
         });
     }
