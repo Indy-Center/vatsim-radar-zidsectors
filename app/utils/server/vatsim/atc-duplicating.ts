@@ -325,7 +325,7 @@ export const duplicatingSettings = [
     * @author 1098471
     */
     {
-        regex: /(?i)\b(?:MEM|BNA|LIT|FSM|JAN|HSV|HOP|NMM|CBM)\b/,
+        regex: /^MEM_\d{1,3}_CTR$/,
         mapping: {
             MEM: 'MEM_E_APP',
             BNA: 'BNA_X_DEP',
