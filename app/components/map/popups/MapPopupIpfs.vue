@@ -31,7 +31,7 @@
             </ui-text-block>
         </div>
         <div
-            v-if="status || ipfs.cdmData.depInfo"
+            v-if="status || ipfs.cdmData.depInfo || ipfs.aobt"
             class="ipfs-info__cols"
         >
             <ui-text-block
@@ -39,12 +39,36 @@
                 :bottom-items="[status]"
                 text-align="center"
                 :top-items="['Status']"
-            />
+            >
+                <template #top="{ item }">
+                    <div class="ipfs-info__info">
+                        <span>{{item}}</span>
+                        <ui-tooltip
+                            v-if="statusHint"
+                            :location="(ipfs.cdmData.depInfo || ipfs.aobt) ? 'right' : 'bottom'"
+                            width="250px"
+                        >
+                            <template #activator>
+                                <div class="radio__hint">
+                                    <question-icon width="16"/>
+                                </div>
+                            </template>
+                            {{statusHint}}
+                        </ui-tooltip>
+                    </div>
+                </template>
+            </ui-text-block>
             <ui-text-block
                 v-if="ipfs.cdmData.depInfo"
                 :bottom-items="[ipfs.cdmData.depInfo.split('/').join(' | ')]"
                 text-align="center"
                 :top-items="['Departure info']"
+            />
+            <ui-text-block
+                v-if="ipfs.aobt"
+                :bottom-items="[`${ ipfs.aobt.slice(0,4) }z`]"
+                text-align="center"
+                :top-items="['AOBT']"
             />
         </div>
         <ui-notification
@@ -269,6 +293,31 @@ const status = computed(() => {
             return 'Slot Allocated';
         case ViffStatus.ATC_ACTIV:
             return 'Departing';
+        case ViffStatus.REA:
+            return 'Ready';
+        default:
+            return '';
+    }
+});
+
+const statusHint = computed(() => {
+    switch (props.ipfs.atfcmStatus) {
+        case ViffStatus.FLS_CDM:
+            return 'Flight Suspended due to not airborne in time';
+        case ViffStatus.FLS_GS:
+            return 'Flight Suspended by CDM';
+        case ViffStatus.FLS_MR:
+            return 'Flight suspended due to mandatory route';
+        case ViffStatus.FLS_NRA:
+            return 'Flight suspended due to ground stop';
+        case ViffStatus.DES:
+            return 'Flight is De-Suspended';
+        case ViffStatus.SRM:
+            return 'CTOT has been updated';
+        case ViffStatus.SAM:
+            return 'CTOT has been allocated';
+        case ViffStatus.ATC_ACTIV:
+            return 'Flight is already in movement';
         default:
             return '';
     }

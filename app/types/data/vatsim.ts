@@ -362,6 +362,9 @@ export enum ViffStatus {
     SLC = 'SLC',
     // Flight is already in movement. Automatically set when AOBT is set.
     ATC_ACTIV = 'ATC_ACTIV',
+    REA = 'REA',
+    COMPLY = 'COMPLY',
+    AIRB = 'AIRB',
 }
 
 export interface IpfsUser {
