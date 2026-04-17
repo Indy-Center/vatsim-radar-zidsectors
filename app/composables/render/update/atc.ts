@@ -33,6 +33,7 @@ async function filterFirsForList(list: string[] | undefined, callsign: string) {
         fir: VatSpyData['firs'][0];
         feature: Feature<MultiPolygon, VatSpyDataProperties>;
         symbols: number;
+        exact: boolean;
     }[] = [];
 
     let callsignSplit = callsign.split(callsignSplitRegex);
@@ -41,10 +42,19 @@ async function filterFirsForList(list: string[] | undefined, callsign: string) {
     const callsignMiddle = callsignSplit.join('_');
 
     let maxStart = 0;
+    let foundExact = false;
 
     for (const item of list) {
         const fir = firsMap[item];
-        if (!fir || (fir.callsign ? !callsign.startsWith(fir.callsign) : !callsign.startsWith(fir.icao))) continue;
+        let exact = false;
+
+        if (!fir || (fir.callsign ? !callsign.startsWith(fir.callsign) : !callsign.startsWith(fir.icao))) {
+            if (callsign.startsWith(fir?.icao)) {
+                exact = true;
+                foundExact = true;
+            }
+            else continue;
+        }
 
         let word = '';
 
@@ -71,10 +81,11 @@ async function filterFirsForList(list: string[] | undefined, callsign: string) {
                 ? features[0]
                 : features.find(x => x.properties.oceanic === callsign.endsWith('_FSS')) ?? features[0],
             symbols: length,
+            exact,
         });
     }
 
-    return result.filter(x => x.symbols === maxStart);
+    return result.filter(x => (!foundExact || x.exact) && x.symbols === maxStart);
 }
 
 async function findFirsForCallsign(callsign: string, prefix?: string) {
@@ -178,7 +189,7 @@ export async function updateControllers(context: DataUpdateContext) {
     }
 
     const realCallsigns = new Set(dataStore.vatsim.data.controllers.value.map(x => x.callsign));
-    const duplicatedPositions: VatsimShortenedController[] = [];
+    const duplicatedPositions: Record<string, VatsimShortenedController> = {};
 
     const controllers = [
         ...(store.bookingOverride ? [] : dataStore.vatsim.data.controllers.value),
@@ -207,7 +218,7 @@ export async function updateControllers(context: DataUpdateContext) {
         const freq = parseFloat(controller.frequency || '0');
         if (freq > 137 || freq < 117) continue;
 
-        if (!testedCallsigns.has(controller.callsign)) {
+        if (!controller.duplicated && !testedCallsigns.has(controller.callsign)) {
             let match = false;
 
             for (const setting of duplicatingSettings) {

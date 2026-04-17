@@ -1,5 +1,10 @@
 # Changelog
 
+# [2.0.0-alpha.7.5.1]
+
+- Fixed next being unusable with no atc and a huge memory leak
+- Fixed some FIRs not showing on map
+
 # [2.0.0-alpha.7.5]
 
 ## Alpha changes
