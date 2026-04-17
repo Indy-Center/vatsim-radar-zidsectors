@@ -1,6 +1,6 @@
 import type { DataAirport } from '~/composables/render/storage';
 import { getActiveRunways } from '~/utils/shared/runway-detection';
-import type { VatsimBooking, VatsimBookingAtc, VatsimController } from '~/types/data/vatsim';
+import type { VatsimBooking, VatsimController } from '~/types/data/vatsim';
 
 export function updateAirportAtisConfig(airport: DataAirport) {
     const atises: DataAirport['atis'] = {};

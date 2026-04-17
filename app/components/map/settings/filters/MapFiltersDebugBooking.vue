@@ -92,7 +92,6 @@ import UiSelect from '~/components/ui/inputs/UiSelect.vue';
 import type {
     VatsimBookingWithField,
 } from '~/components/map/settings/filters/MapFiltersDebug.vue';
-import UiDatePicker from '~/components/ui/inputs/UiDatePicker.vue';
 import UiNotification from '~/components/ui/data/UiNotification.vue';
 
 defineEmits({
