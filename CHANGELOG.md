@@ -1,5 +1,15 @@
 # Changelog
 
+# [2.0.0-alpha.7.5]
+
+- Added support for a toggle for duplicating ATC instead of having to remove it all the time
+- Added support for booking debugging
+- Moved RegEx ATC duplicating to frontend, making it possible to test duplications logic. AU duplication is not supported in this configuration
+- Bookings will no longer be added to active sectors, or to an airport where booked facility is staffed
+- Fixed FSS facilities not displaying
+- Added TWR icon when VATGlasses sector is active
+- Fixed rare ATCs not displayed
+
 # [2.0.0-alpha.7.3]
 
 ## Alpha changes

@@ -3,7 +3,7 @@
         <map-filters-debug-clear
             v-if="isDebug"
             data="all"
-            @click="debugControllers = []"
+            @click="[debugControllers = [], debugBookings = []]"
         >
             Clear All
         </map-filters-debug-clear>
@@ -34,6 +34,16 @@
                     {{controller.callsign}}
                 </div>
                 <div class="debug_atc_item_actions">
+                    <ui-button
+                        icon-width="12px"
+                        size="S"
+                        :type="controller.visual_range === -1000 ? 'secondary-875' : 'primary'"
+                        @click="setVisualRange(controller)"
+                    >
+                        <template #icon>
+                            <check-icon/>
+                        </template>
+                    </ui-button>
                     <ui-button
                         icon-width="12px"
                         size="S"
@@ -79,6 +89,84 @@
                 <ui-button
                     :disabled="isDisabledControllerSave"
                     @click="saveController"
+                >
+                    Save
+                </ui-button>
+            </template>
+        </popup-fullscreen>
+        <ui-block-title remove-margin>
+            Fake booking
+        </ui-block-title>
+        <ui-button-group>
+            <ui-button
+                size="S"
+                type="primary"
+                @click="activeBooking = getDefaultBooking()"
+            >
+                Add New
+            </ui-button>
+            <map-filters-debug-clear
+                data="controllers"
+                type="primary"
+                @click="debugBookings = []"
+            />
+        </ui-button-group>
+        <div class="debug_atc">
+            <div
+                v-for="(booking, index) in debugBookings"
+                :key="booking.id+index"
+                class="debug_atc_item"
+            >
+                <div class="debug_atc_item_title">
+                    {{booking.atc.callsign}}
+                </div>
+                <div class="debug_atc_item_actions">
+                    <ui-button
+                        icon-width="12px"
+                        size="S"
+                        @click="activeBooking = { default: false, ...booking }"
+                    >
+                        <template #icon>
+                            <edit-icon/>
+                        </template>
+                    </ui-button>
+                    <ui-button
+                        hover-color="error700"
+                        icon-width="12px"
+                        primary-color="error500"
+                        size="S"
+                        @click="deleteBooking(booking.atc.cid)"
+                    >
+                        <template #icon>
+                            <close-icon/>
+                        </template>
+                    </ui-button>
+                </div>
+            </div>
+        </div>
+        <popup-fullscreen
+            :model-value="!!activeBooking"
+            width="600px"
+            @update:modelValue="activeBooking = null"
+        >
+            <template #title>
+                Fake booking edit
+            </template>
+            <map-filters-debug-booking
+                v-if="activeBooking"
+                v-model="activeBooking"
+                @submit="!isDisabledBookingSave && saveBooking()"
+            />
+            <template #actions>
+                <ui-button
+                    type="secondary"
+                    @click="activeBooking = null"
+                >
+                    Cancel
+                </ui-button>
+                <ui-button
+                    :disabled="isDisabledBookingSave"
+                    @click="saveBooking"
                 >
                     Save
                 </ui-button>
@@ -210,7 +298,7 @@
 <script setup lang="ts">
 import UiBlockTitle from '~/components/ui/text/UiBlockTitle.vue';
 import UiButton from '~/components/ui/buttons/UiButton.vue';
-import type { VatsimController } from '~/types/data/vatsim';
+import type { VatsimBooking, VatsimController } from '~/types/data/vatsim';
 import MapFiltersDebugController from '~/components/map/settings/filters/MapFiltersDebugController.vue';
 import EditIcon from 'assets/icons/kit/edit.svg?component';
 import CloseIcon from '~/assets/icons/basic/close.svg?component';
@@ -220,8 +308,10 @@ import MapFiltersDebugClear from '~/components/map/settings/filters/MapFiltersDe
 import PopupFullscreen from '~/components/popups/PopupFullscreen.vue';
 import MapFiltersDebugUpload from '~/components/map/settings/filters/MapFiltersDebugUpload.vue';
 import UiNotification from '~/components/ui/data/UiNotification.vue';
-import { debugControllers } from '~/composables/render/update/utils';
+import { debugBookings, debugControllers } from '~/composables/render/update/utils';
 import { getFacilityByCallsign } from '~/utils/shared/vatsim';
+import CheckIcon from '~/assets/icons/kit/check.svg?component';
+import MapFiltersDebugBooking from '~/components/map/settings/filters/MapFiltersDebugBooking.vue';
 
 const files = reactive({
     vatspy: {
@@ -249,6 +339,10 @@ export interface VatsimControllerWithField extends VatsimController {
     default: boolean;
 }
 
+export interface VatsimBookingWithField extends VatsimBooking {
+    default: boolean;
+}
+
 const getDefaultController = (): VatsimControllerWithField => ({
     cid: Date.now(),
     name: Date.now().toString(),
@@ -263,6 +357,32 @@ const getDefaultController = (): VatsimControllerWithField => ({
     logon_time: new Date().toISOString(),
     default: true,
 });
+
+const getDefaultBooking = (): VatsimBookingWithField => {
+    const start = new Date();
+    const end = new Date();
+    start.setMinutes(start.getMinutes() + 60);
+    end.setMinutes((end.getMinutes() + 60) * 3);
+
+    return {
+        start: start.getTime(),
+        end: end.getTime(),
+        id: Date.now(),
+        type: 'booking',
+        atc: {
+            callsign: '',
+            cid: Date.now(),
+            name: Date.now().toString(),
+            frequency: '123.123',
+            facility: 1,
+            rating: -1,
+            logon_time: '',
+            text_atis: [],
+            isBooking: true,
+        },
+        default: true,
+    };
+};
 
 const dataStore = useDataStore();
 const mapStore = useMapStore();
@@ -294,6 +414,11 @@ async function parse() {
     };
 
     triggerRef(dataStore.navigraphWaypoints);
+}
+
+function setVisualRange(controller: VatsimController) {
+    controller.visual_range = (controller.visual_range === -1000 ? 1 : -1000);
+    triggerRef(debugControllers);
 }
 
 onMounted(() => {
@@ -338,10 +463,12 @@ onMounted(() => {
 });
 
 const activeController = ref<VatsimControllerWithField | null>(null);
+
 const isDisabledControllerSave = computed(() => !activeController.value ||
     !activeController.value.name ||
     !activeController.value.callsign ||
     debugControllers.value?.some(x => x.callsign === activeController.value!.callsign && x.cid !== activeController.value!.cid));
+
 const saveController = async () => {
     debugControllers.value = debugControllers.value.filter(x => x.callsign !== activeController.value!.callsign);
     debugControllers.value.push({
@@ -352,9 +479,35 @@ const saveController = async () => {
     triggerRef(debugControllers);
     activeController.value = null;
 };
+
 const deleteController = async (cid: number) => {
     debugControllers.value = debugControllers.value.filter(x => x.cid !== cid);
 };
+
+const activeBooking = ref<VatsimBookingWithField | null>(null);
+
+const isDisabledBookingSave = computed(() => !activeBooking.value ||
+    !activeBooking.value.atc.name ||
+    !activeBooking.value.atc.callsign ||
+    debugBookings.value?.some(x => x.atc.callsign === activeBooking.value!.atc.callsign && x.atc.cid !== activeBooking.value!.atc.cid));
+
+const saveBooking = async () => {
+    debugBookings.value = debugBookings.value.filter(x => x.atc.callsign !== activeBooking.value!.atc.callsign);
+    debugBookings.value.push({
+        ...activeBooking.value!,
+        atc: {
+            ...activeBooking.value!.atc,
+            facility: getFacilityByCallsign(activeBooking.value!.atc.callsign),
+        },
+    });
+    triggerRef(debugBookings);
+    activeBooking.value = null;
+};
+
+const deleteBooking = async (cid: number) => {
+    debugBookings.value = debugBookings.value.filter(x => x.atc.cid !== cid);
+};
+
 const getFromPr = async (type: Exclude<DataKey, 'vatglasses'>) => {
     const id = prs[type];
     prs[type] = 'loading';

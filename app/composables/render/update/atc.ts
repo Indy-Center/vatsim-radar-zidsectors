@@ -2,11 +2,12 @@ import type { DataUpdateContext } from '~/composables/render/update/index';
 import type { VatsimShortenedController } from '~/types/data/vatsim';
 import type { VatSpyAirport, VatSpyData, VatSpyDataProperties } from '~/types/data/vatspy';
 import type { Feature, MultiPolygon } from 'geojson';
-import { getTraconPrefixes, getTraconSuffix } from '~/utils/shared/vatsim';
+import { getFacilityByCallsign, getTraconPrefixes, getTraconSuffix } from '~/utils/shared/vatsim';
 import type { SimAwareDataFeature } from '~/utils/server/storage';
 import type { DataAirport, DataSector } from '~/composables/render/storage';
 import { checkForVATSpy } from '~/composables/init';
-import { debugControllers } from '~/composables/render/update/utils';
+import { debugBookings, debugControllers } from '~/composables/render/update/utils';
+import { duplicatingSettings } from '~/utils/server/vatsim/atc-duplicating';
 
 export const callsignSplitRegex = /_+/gm;
 
@@ -91,7 +92,11 @@ function addSector(context: DataUpdateContext, sector: FirFindResult, controller
             : sector.fir.icao;
 
     const existingSector = context.sectors[sectorKey];
-    if (existingSector && controller) existingSector.atc.push(controller);
+    if (existingSector && controller) {
+        // Don't add booking controllers to same sectors
+        if (controller.isBooking && existingSector.atc.length) return;
+        existingSector.atc.push(controller);
+    }
     else if (!existingSector) {
         context.sectors[sectorKey] = {
             fir: sector.fir,
@@ -102,10 +107,21 @@ function addSector(context: DataUpdateContext, sector: FirFindResult, controller
     }
 }
 
+const testedCallsigns = new Set<string>();
+
+let testedResetInterval: NodeJS.Timeout;
+
 export async function updateControllers(context: DataUpdateContext) {
     const dataStore = useDataStore();
     const store = useStore();
     const facilities = useFacilitiesIds();
+
+    if (!testedResetInterval) {
+        testedResetInterval = setInterval(() => {
+            // Memory leak prevention
+            testedCallsigns.clear();
+        }, 1000 * 60 * 60);
+    }
 
     setVatspyBoundaries.clear();
 
@@ -161,26 +177,76 @@ export async function updateControllers(context: DataUpdateContext) {
         });
     }
 
+    const realCallsigns = new Set(dataStore.vatsim.data.controllers.value.map(x => x.callsign));
+    const duplicatedPositions: VatsimShortenedController[] = [];
+
     const controllers = [
         ...(store.bookingOverride ? [] : dataStore.vatsim.data.controllers.value),
         ...(store.bookingOverride ? [] : dataStore.vatsim.data.atis.value),
         ...bookings.map(({ atc, ...rest }) => ({
             ...atc,
+            facility: getFacilityByCallsign(atc.callsign),
             booking: rest,
             isBooking: true,
         } satisfies VatsimShortenedController)),
     ];
 
     if (debugControllers.value?.length) {
-        controllers.push(...debugControllers.value);
+        controllers.unshift(...debugControllers.value.filter(x => x.visual_range !== -1000));
+    }
+
+    if (debugBookings.value.length) {
+        controllers.push(...debugBookings.value.map(({ atc, ...rest }) => ({
+            ...atc,
+            booking: rest,
+            isBooking: true,
+        })));
     }
 
     for (const controller of controllers) {
         const freq = parseFloat(controller.frequency || '0');
         if (freq > 137 || freq < 117) continue;
 
+        if (!testedCallsigns.has(controller.callsign)) {
+            let match = false;
+
+            for (const setting of duplicatingSettings) {
+                if (controller.text_atis?.length && setting.regex.test(controller.callsign)) {
+                    match = true;
+                    const atisText = controller.text_atis.join(' ');
+
+                    for (const [areaText, targetCallsign] of Object.entries(setting.mapping)) {
+                        const areaTextRegExp = new RegExp(`\\b${ RegExp.escape(areaText) }\\b`, 'i');
+
+                        if (areaTextRegExp.test(atisText) && controller.callsign !== targetCallsign) {
+                            if (!realCallsigns.has(targetCallsign)) {
+                                const duplicated = {
+                                    ...controller,
+                                    callsign: targetCallsign,
+                                    duplicatedBy: controller.callsign,
+                                    duplicated: true,
+                                };
+
+                                controllers.push(duplicated);
+
+                                // Priority to app
+                                if (duplicatedPositions[duplicated.callsign]) {
+                                    if (duplicatedPositions[duplicated.callsign].facility > controller.facility) {
+                                        Object.assign(duplicatedPositions[duplicated.callsign], duplicated);
+                                    }
+                                }
+                                else duplicatedPositions[duplicated.callsign] = duplicated;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (controller.text_atis?.length && !match) testedCallsigns.add(controller.callsign);
+        }
+
         // Already in VATGlasses, skipping
-        if (context.atcAdded?.has(controller.callsign)) continue;
+        if (context.atcAdded?.has(controller.callsign) && controller.facility > facilities.TWR) continue;
 
         const callsign = controller.callsign.replaceAll(callsignSplitRegex, '_');
         const split = controller.callsign.split('_');
@@ -192,10 +258,11 @@ export async function updateControllers(context: DataUpdateContext) {
             if (!uirsMap) continue;
 
             const uir = uirsMap[prefix];
+
             if (uir) {
                 let foundFir = false;
 
-                for (const fir of uir.firs) {
+                for (const fir of uir.firs.split(',')) {
                     const firs = await findFirsForCallsign(fir);
                     foundFir ||= !!firs.length;
 
@@ -311,6 +378,9 @@ export async function updateControllers(context: DataUpdateContext) {
             }
 
             if (!dataAirport) continue;
+
+            // Booking ATC are added last, so that makes sense
+            if (controller.isBooking && dataAirport.atc.some(x => x.facility === controller.facility)) continue;
 
             dataAirport.atc.push({ ...controller, isATIS });
         }

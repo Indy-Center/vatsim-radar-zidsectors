@@ -3,7 +3,6 @@ import { radarStorage } from '../storage';
 import type {
     VatsimData,
     VatsimLiveDataMap,
-    VatsimShortenedController,
 } from '~/types/data/vatsim';
 import updateVatsimExtendedPilots, {
     updateVatsimDataStorage,
@@ -20,7 +19,6 @@ import { initWholeBunchOfBackendTasks, navigraphUpdating } from '~/utils/server/
 import { prisma } from '~/utils/server/prisma';
 
 import type { RadarNotam } from '~/utils/shared/vatsim';
-import { duplicatingSettings } from '../vatsim/atc-duplicating';
 import { getTransceiverData } from '~/utils/server/vatsim';
 
 initWebsocket();
@@ -189,13 +187,6 @@ defineCronJob('* * * * * *', async () => {
     dataLatestFinished = Date.now();
 });
 
-const testedCallsigns = new Set<string>();
-
-setInterval(() => {
-    // Memory leak prevention
-    testedCallsigns.clear();
-}, 1000 * 60 * 60);
-
 defineCronJob('* * * * * *', async () => {
     const vatspy = radarStorage.vatspy;
 
@@ -306,8 +297,6 @@ defineCronJob('* * * * * *', async () => {
         const allowedDuplicatingFacilities = ['FSS', 'CTR', 'APP', 'DEP'];
         const allowedDuplicatingSectors = radarStorage.vatsim.sectorsDataset.filter(x => allowedDuplicatingFacilities.some(y => x.callsign.endsWith(y)));
 
-        const duplicatedPositions: VatsimShortenedController[] = [];
-
         for (let i = 0; i < length; i++) {
             const controller = radarStorage.vatsim.data!.controllers[i];
 
@@ -341,35 +330,6 @@ defineCronJob('* * * * * *', async () => {
                 }
             }
 
-            if (!testedCallsigns.has(controller.callsign)) {
-                let match = false;
-
-                for (const setting of duplicatingSettings) {
-                    if (controller.text_atis?.length && setting.regex.test(controller.callsign)) {
-                        match = true;
-                        const atisText = controller.text_atis.join(' ');
-
-                        for (const [areaText, targetCallsign] of Object.entries(setting.mapping)) {
-                            const areaTextRegExp = new RegExp(`\\b${ RegExp.escape(areaText) }\\b`, 'i');
-
-                            if (areaTextRegExp.test(atisText) && controller.callsign !== targetCallsign) {
-                                const duplicated = {
-                                    ...controller,
-                                    callsign: targetCallsign,
-                                    duplicatedBy: controller.callsign,
-                                    duplicated: true,
-                                };
-
-                                radarStorage.vatsim.data.controllers.push(duplicated);
-                                duplicatedPositions.push(duplicated);
-                            }
-                        }
-                    }
-                }
-
-                if (controller.text_atis?.length && !match) testedCallsigns.add(controller.callsign);
-            }
-
             const duplicatedSectors = allowedDuplicatingSectors.filter(x => {
                 const freq = parseFloat(x.frequency).toString();
 
@@ -394,18 +354,6 @@ defineCronJob('* * * * * *', async () => {
                     duplicated: true,
                     duplicatedBy: controller.callsign,
                 });
-            }
-        }
-
-        for (const controller of duplicatedPositions) {
-            if (!controller.duplicatedBy?.endsWith('CTR')) continue;
-
-            const duplicatedPosition = duplicatedPositions.some(x => x.callsign === controller.callsign && !x.duplicatedBy?.endsWith('CTR'));
-            if (duplicatedPosition) {
-                radarStorage.vatsim.data.controllers = radarStorage.vatsim.data.controllers
-                    .filter(x => {
-                        return x.cid !== controller.cid || x.callsign !== controller.callsign || x.duplicatedBy !== controller.duplicatedBy;
-                    });
             }
         }
 

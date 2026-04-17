@@ -64,8 +64,8 @@ export function setMapAirports({ source, airports, layer }: {
         const featuresCallsigns = new Set<string>(airport.features?.flatMap(x => x.controllers.map(x => x.callsign)));
 
         locals.forEach(local => {
-            if (featuresCallsigns.has(local.callsign) || dataStore.atcAddedDuringUpdate.value.has(local.callsign)) return;
             if (local.facility === facilitiesIds.CTR || local.facility === facilitiesIds.FSS) return;
+            if (featuresCallsigns.has(local.callsign)) return;
             const facilityId = local.isATIS ? -1 : local.facility;
             let facility = facilitiesMap.get(facilityId);
 
@@ -98,7 +98,7 @@ export function setMapAirports({ source, airports, layer }: {
 
         const facilities = sortControllersByPosition(Array.from(facilitiesMap.values()));
         const atc: VatsimShortenedController[] = [];
-        const atcLength = airport.atc.filter(x => !x.isATIS && !x.isBooking).length;
+        const atcLength = airport.atc.filter(x => !x.isATIS && (!x.isBooking || x.facility > facilitiesIds.TWR)).length;
 
         facilities.forEach((facility, index) => {
             const key = `airport-${ airport.icao }-${ facility.facility }` as const;
@@ -225,7 +225,7 @@ export function setMapAirports({ source, airports, layer }: {
         if (appr.length || airport.features?.length) {
             const atc = appr.filter(x => isDuplicated || !x.duplicated);
 
-            if (!airport.features?.length && airport.airport && !airport.airport.isPseudo) {
+            if (!airport.features?.length && airport.airport) {
                 const existingCircle = getMapFeature('airport-circle', source, `airport-${ airport.airport.icao }-circle`);
                 const existingCircleLabel = getMapFeature('airport-circle-label', source, `airport-${ airport.airport.icao }-circleLabel`);
 
@@ -383,7 +383,8 @@ export function setMapAirports({ source, airports, layer }: {
             }
 
             if (isMapFeature('airport-atc', properties)) {
-                const locals = airport.atc.filter(x => x.facility !== facilitiesIds.APP);
+                const featuresCallsigns = new Set<string>(airport.features?.flatMap(x => x.controllers.map(x => x.callsign)));
+                const locals = airport.atc.filter(x => x.facility !== facilitiesIds.APP && !featuresCallsigns.has(x.callsign));
 
                 if (!locals.length || !locals.some(x => properties.facility.facility === -1 ? x.isATIS : (x.facility === properties.facility.facility && !x.isATIS))) {
                     source.removeFeature(feature);

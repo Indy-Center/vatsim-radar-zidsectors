@@ -1,6 +1,6 @@
 import type { DataAirport } from '~/composables/render/storage';
 import { getActiveRunways } from '~/utils/shared/runway-detection';
-import type { VatsimController } from '~/types/data/vatsim';
+import type { VatsimBooking, VatsimBookingAtc, VatsimController } from '~/types/data/vatsim';
 
 export function updateAirportAtisConfig(airport: DataAirport) {
     const atises: DataAirport['atis'] = {};
@@ -46,3 +46,4 @@ export function updateAirportAtisConfig(airport: DataAirport) {
 }
 
 export const debugControllers = useLocalStorage<VatsimController[]>('debug-controllers', []);
+export const debugBookings = useLocalStorage<VatsimBooking[]>('debug-bookings', []);

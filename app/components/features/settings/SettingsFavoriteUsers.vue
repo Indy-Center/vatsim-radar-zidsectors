@@ -84,7 +84,9 @@
                             class="users_user__btn"
                             @click="[mapStore.addPrefileOverlay(user.cid.toString())]"
                         >
-                            Preparing for a flight from {{ user.data.departure }} to {{user.data.arrival}} as {{ user.data.callsign }}
+                            Preparing for a flight <template v-if="user.data.departure">
+                                from {{ user.data.departure }} to {{user.data.arrival}}
+                            </template> as {{ user.data.callsign }}
                         </div>
                         <div
                             v-else-if="user.type === 'atc'"
