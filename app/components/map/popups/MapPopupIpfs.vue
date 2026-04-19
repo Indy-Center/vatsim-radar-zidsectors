@@ -64,13 +64,13 @@
                 text-align="center"
                 :top-items="['Departure info']"
             />
-            <ui-text-block
+            <common-info-block
                 v-if="ipfs.cdmSts === ViffStatus.REA && ipfs.atfcmStatus !== ViffStatus.REA"
                 :bottom-items="['Ready']"
                 text-align="center"
                 :top-items="['Ready status']"
             />
-            <ui-text-block
+            <common-info-block
                 v-else-if="ipfs.aobt"
                 :bottom-items="[`${ ipfs.aobt.slice(0,4) }z`]"
                 text-align="center"
@@ -149,23 +149,23 @@
                     Save
                 </common-button>
             </div>
-            <ui-button
+            <common-button
                 v-if="ipfs.ctot && ipfs.atfcmStatus !== ViffStatus.REA && ipfs.cdmSts !== ViffStatus.REA"
                 size="S"
                 @click="readyPopup = true"
             >
                 Ready now
-            </ui-button>
-            <ui-button
+            </common-button>
+            <common-button
                 v-else-if="ipfs.atfcmStatus === ViffStatus.REA || ipfs.cdmSts === ViffStatus.REA"
                 size="S"
                 type="secondary"
                 @click="setReadyStatus(false)"
             >
                 Not ready
-            </ui-button>
+            </common-button>
         </div>
-        <popup-fullscreen
+        <common-popup
             v-model="readyPopup"
             :disabled="saving"
         >
@@ -191,21 +191,21 @@
             Proceed only if above conditions are met.
 
             <template #actions>
-                <ui-button
+                <common-button
                     :disabled="saving"
                     type="secondary"
                     @click="readyPopup = false"
                 >
                     Cancel that please
-                </ui-button>
-                <ui-button
+                </common-button>
+                <common-button
                     :disabled="saving"
                     @click="setReadyStatus(true)"
                 >
                     Set REA(DY) status
-                </ui-button>
+                </common-button>
             </template>
-        </popup-fullscreen>
+        </common-popup>
     </div>
 </template>
 
@@ -221,6 +221,7 @@ import CommonNotification from '~/components/common/basic/CommonNotification.vue
 import CommonInputNumber from '~/components/common/basic/CommonInputNumber.vue';
 import CommonButton from '~/components/common/basic/CommonButton.vue';
 import CommonInfoBlock from '~/components/common/blocks/CommonInfoBlock.vue';
+import CommonPopup from '~/components/common/popup/CommonPopup.vue';
 
 const props = defineProps({
     pilot: {
