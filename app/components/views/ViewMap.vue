@@ -513,6 +513,8 @@ const restoreOverlays = async () => {
             else if (overlay.type === 'airport') {
                 await mapStore.addAirportOverlay(overlay.key, undefined, overlay);
             }
+
+            await sleep(0);
         }
         catch (e) {
             console.error(e);
