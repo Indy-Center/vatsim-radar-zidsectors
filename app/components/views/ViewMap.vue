@@ -1102,16 +1102,16 @@ const trackedCoords = computed(() => {
     return center;
 });
 
-const textCoords = computed(() => JSON.stringify(trackedCoords.value ?? []))
+const textCoords = computed(() => JSON.stringify(trackedCoords.value ?? []));
 
 useUpdateCallback(['extent', textCoords], () => {
-  if (!trackedCoords.value) return;
+    if (!trackedCoords.value) return;
 
-  map.value?.getView().animate({
-    center: trackedCoords.value,
-    duration: 300,
-  });
-})
+    map.value?.getView().animate({
+        center: trackedCoords.value,
+        duration: 300,
+    });
+});
 
 function handleKeys(event: KeyboardEvent) {
     if (!event.ctrlKey && !event.altKey && !event.shiftKey && !event.metaKey) return;

@@ -45,5 +45,5 @@ export function updateAirportAtisConfig(airport: DataAirport) {
     }
 }
 
-export const debugControllers = useLocalStorage<VatsimController[]>('debug-controllers', [], {shallow: true});
-export const debugBookings = useLocalStorage<VatsimBooking[]>('debug-bookings', [], {shallow: true});
+export const debugControllers = useLocalStorage<VatsimController[]>('debug-controllers', [], { shallow: true });
+export const debugBookings = useLocalStorage<VatsimBooking[]>('debug-bookings', [], { shallow: true });
