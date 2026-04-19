@@ -171,6 +171,12 @@ const props = defineProps({
     },
 });
 
+const emit = defineEmits({
+    saved(item: IpfsUser) {
+        return true;
+    },
+});
+
 const store = useStore();
 
 interface Block {
@@ -267,13 +273,15 @@ const saving = ref(false);
 async function saveEstimate() {
     saving.value = true;
     try {
-        await $fetch<IpfsUser>(`/api/data/vatsim/pilot/${ props.pilot.cid }/ipfs`, {
+        const data = await $fetch<IpfsUser>(`/api/data/vatsim/pilot/${ props.pilot.cid }/ipfs?date=${ Date.now() }`, {
             timeout: 1000 * 15,
             method: 'POST',
             body: {
                 obt: `${ ('0' + hrs.value).slice(-2) }${ ('0' + mins.value).slice(-2) }`,
             },
         });
+
+        emit('saved', data);
     }
     catch (e) {
         useRadarError(e);

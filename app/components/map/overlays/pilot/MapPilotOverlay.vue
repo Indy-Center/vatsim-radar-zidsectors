@@ -108,6 +108,7 @@
             <map-popup-ipfs
                 :ipfs="overlay.data.ipfs!"
                 :pilot
+                @saved="[overlay.data.ipfs = $event, ipfsCacheDate = Date.now()]"
             />
         </template>
         <template #graph>
@@ -612,6 +613,7 @@ const getStatus = computed(() => {
 });
 
 const loading = ref(false);
+const ipfsCacheDate = ref(0);
 
 useUpdateCallback(['short'], async () => {
     if (loading.value) return;
@@ -624,7 +626,7 @@ useUpdateCallback(['short'], async () => {
         if (pilot.value.status === 'depTaxi' || pilot.value.status === 'depGate') {
             const previousIpfsData = props.overlay.data.ipfs;
 
-            props.overlay.data.ipfs = await $fetch<IpfsUser>(`/api/data/vatsim/pilot/${ props.overlay.key }/ipfs`, {
+            props.overlay.data.ipfs = await $fetch<IpfsUser>(`/api/data/vatsim/pilot/${ props.overlay.key }/ipfs?date=${ ipfsCacheDate.value }`, {
                 timeout: 1000 * 15,
             }).catch(() => {
             }) ?? previousIpfsData;
