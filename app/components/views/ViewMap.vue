@@ -326,7 +326,7 @@ import MapMinifiedOverlays from '~/components/map/overlays/MapMinifiedOverlays.v
 import { isVatGlassesActive } from '~/utils/data/vatglasses';
 import { updateControllersRender } from '~/composables/render/update';
 import { runwaysState } from '~/composables/render/update/vatglasses';
-import { debugControllers } from '~/composables/render/update/utils';
+import { debugBookings, debugControllers } from '~/composables/render/update/utils';
 
 defineProps({
     mode: {
@@ -1079,11 +1079,39 @@ await setupDataFetch({
 
 const vgLevel = computed(() => store.localSettings.vatglassesLevel);
 
-useUpdateCallback(['short', isVatGlassesActive, vgLevel, runwaysState, debugControllers], () => {
+useUpdateCallback(['short', isVatGlassesActive, vgLevel, runwaysState, debugControllers, debugBookings], () => {
     updateControllersRender();
 }, {
     immediate: true,
 });
+
+const trackedAircraft = computed(() => {
+    return mapStore.overlays.find(x => x.type === 'pilot' && x.data.tracked === true);
+});
+
+const trackedCoords = computed(() => {
+    if (!trackedAircraft.value) return null;
+
+    const pilot = dataStore.vatsim.data.keyedPilots.value[trackedAircraft.value.key];
+    if (!pilot) return null;
+
+    let center = [pilot.longitude, pilot.latitude];
+
+    if (ownFlight.value?.cid === +trackedAircraft.value.key && dataStore.vatsim.selfCoordinate.value) center = dataStore.vatsim.selfCoordinate.value.coordinate;
+
+    return center;
+});
+
+const textCoords = computed(() => JSON.stringify(trackedCoords.value ?? []))
+
+useUpdateCallback(['extent', textCoords], () => {
+  if (!trackedCoords.value) return;
+
+  map.value?.getView().animate({
+    center: trackedCoords.value,
+    duration: 300,
+  });
+})
 
 function handleKeys(event: KeyboardEvent) {
     if (!event.ctrlKey && !event.altKey && !event.shiftKey && !event.metaKey) return;

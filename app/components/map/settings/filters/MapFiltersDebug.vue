@@ -470,7 +470,7 @@ const isDisabledControllerSave = computed(() => !activeController.value ||
     debugControllers.value?.some(x => x.callsign === activeController.value!.callsign && x.cid !== activeController.value!.cid));
 
 const saveController = async () => {
-    debugControllers.value = debugControllers.value.filter(x => x.callsign !== activeController.value!.callsign);
+    debugControllers.value = debugControllers.value.filter(x => x.cid !== activeController.value!.cid);
     debugControllers.value.push({
         ...activeController.value!,
         facility: getFacilityByCallsign(activeController.value!.callsign),

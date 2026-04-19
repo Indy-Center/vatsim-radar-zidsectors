@@ -279,14 +279,16 @@ export function setMapAirports({ source, airports, layer }: {
             else {
                 const leftAtc = appr.filter(x => (isDuplicated || !x.duplicated) && !airport.features?.some(y => y.controllers.some(y => y.cid === x.cid && y.callsign === x.callsign)));
 
-                for (const atc of airport.features ?? []) {
-                    const existingTraconId = `airport-${ airport.icao }-${ atc.id }` as const;
+                for (const feature of airport.features ?? []) {
+                    const existingTraconId = `airport-${ airport.icao }-${ feature.id }` as const;
 
                     const existingTracon = getMapFeature('airport-tracon', source, existingTraconId);
                     const existingTraconLabel = getMapFeature('airport-tracon-label', source, `${ existingTraconId }Label`);
 
+                    isDuplicated = feature.controllers.every(x => x.duplicated);
+
                     const controllers = [
-                        ...atc.controllers.filter(x => isDuplicated || !x.duplicated),
+                        ...feature.controllers.filter(x => isDuplicated || !x.duplicated),
                         ...leftAtc.filter(x => isDuplicated || !x.duplicated),
                     ];
 
@@ -306,7 +308,7 @@ export function setMapAirports({ source, airports, layer }: {
                         });
                     }
                     else {
-                        const geometry = geoJson.readGeometry(atc.traconFeature.geometry) as any;
+                        const geometry = geoJson.readGeometry(feature.traconFeature.geometry) as any;
 
                         const tracon = createMapFeature('airport-tracon', {
                             geometry,
@@ -318,15 +320,15 @@ export function setMapAirports({ source, airports, layer }: {
                             isTWR,
                             isDuplicated,
                             isBooked,
-                            featureId: atc.id,
-                            traconId: atc.traconFeature.properties?.id,
+                            featureId: feature.id,
+                            traconId: feature.traconFeature.properties?.id,
                         });
 
                         const extent = geometry.getExtent();
                         const topCoord = [extent![0], extent![3]];
                         let textCoord = geometry.getClosestPoint(topCoord) || topCoord;
-                        if (atc.traconFeature.properties.label_lat) {
-                            textCoord = geometry?.getClosestPoint([atc.traconFeature.properties.label_lon, atc.traconFeature.properties.label_lat]);
+                        if (feature.traconFeature.properties.label_lat) {
+                            textCoord = geometry?.getClosestPoint([feature.traconFeature.properties.label_lon, feature.traconFeature.properties.label_lat]);
                         }
 
                         const traconLabel = createMapFeature('airport-tracon-label', {
@@ -336,12 +338,12 @@ export function setMapAirports({ source, airports, layer }: {
                             icao: airport.icao,
                             iata: airport.icao,
                             atc: controllers,
-                            name: atc.traconFeature.properties.name,
+                            name: feature.traconFeature.properties.name,
                             isTWR,
                             isDuplicated,
                             isBooked,
-                            featureId: atc.id,
-                            traconId: atc.traconFeature.properties?.id,
+                            featureId: feature.id,
+                            traconId: feature.traconFeature.properties?.id,
                             aircraftList: airport.aircraft,
                             atcLength,
                         });

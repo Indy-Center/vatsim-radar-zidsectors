@@ -47,10 +47,12 @@ async function filterFirsForList(list: string[] | undefined, callsign: string) {
     for (const item of list) {
         const fir = firsMap[item];
         let exact = false;
+        let foundExactHere = false;
 
         if (!fir || (fir.callsign ? !callsign.startsWith(fir.callsign) : !callsign.startsWith(fir.icao))) {
             if (callsign.startsWith(fir?.icao)) {
                 exact = true;
+                if (!foundExact) foundExactHere = true;
                 foundExact = true;
             }
             else continue;
@@ -67,11 +69,24 @@ async function filterFirsForList(list: string[] | undefined, callsign: string) {
 
         if ((fir.callsign || fir.icao) === callsignMiddle) length = 100;
 
-        if (length < maxStart) break;
+        if (length < maxStart) {
+            if (foundExactHere) {
+                foundExact = false;
+            }
+
+            continue;
+        }
         maxStart = length;
 
         const features = dataStore.vatspy.value?.data.features[fir.boundary] ?? [];
-        if (!features.length) continue;
+
+        if (!features.length) {
+            if (foundExactHere) {
+                foundExact = false;
+            }
+
+            continue;
+        }
 
         setVatspyBoundaries.add(fir.boundary);
 
@@ -98,15 +113,16 @@ async function findFirsForCallsign(callsign: string, prefix?: string) {
 function addSector(context: DataUpdateContext, sector: FirFindResult, controller: VatsimShortenedController | null, uir?: DataSector['uir']) {
     const sectorKey = !sector.fir
         ? sector.feature.properties.id
-        : sector.fir.callsign
-            ? `${ sector.fir.callsign }-${ sector.fir.icao }`
-            : sector.fir.icao;
+        : sector.fir.boundary;
 
     const existingSector = context.sectors[sectorKey];
     if (existingSector && controller) {
         // Don't add booking controllers to same sectors
         if (controller.isBooking && existingSector.atc.length) return;
-        existingSector.atc.push(controller);
+
+        if (!existingSector.atc.some(x => x.callsign === controller.callsign)) {
+            existingSector.atc.push(controller);
+        }
     }
     else if (!existingSector) {
         context.sectors[sectorKey] = {
@@ -233,6 +249,7 @@ export async function updateControllers(context: DataUpdateContext) {
                             if (!realCallsigns.has(targetCallsign)) {
                                 const duplicated = {
                                     ...controller,
+                                    facility: getFacilityByCallsign(targetCallsign),
                                     callsign: targetCallsign,
                                     duplicatedBy: controller.callsign,
                                     duplicated: true,
@@ -255,9 +272,6 @@ export async function updateControllers(context: DataUpdateContext) {
 
             if (controller.text_atis?.length && !match) testedCallsigns.add(controller.callsign);
         }
-
-        // Already in VATGlasses, skipping
-        if (context.atcAdded?.has(controller.callsign) && controller.facility > facilities.TWR) continue;
 
         const callsign = controller.callsign.replaceAll(callsignSplitRegex, '_');
         const split = controller.callsign.split('_');
@@ -285,6 +299,7 @@ export async function updateControllers(context: DataUpdateContext) {
 
             // TODO: restore aeronav logic
             const firs = await findFirsForCallsign(callsign, prefix);
+
             firs.forEach(x => addSector(context, x, controller));
         }
         else {
@@ -395,6 +410,14 @@ export async function updateControllers(context: DataUpdateContext) {
 
             dataAirport.atc.push({ ...controller, isATIS });
         }
+    }
+
+    for (const sector of Object.values(context.sectors)) {
+        sector.atc = sector.atc.filter(x => !context.atcAdded?.has(x.callsign));
+    }
+
+    for (const airport of Object.values(context.airports)) {
+        airport.atc = airport.atc.filter(x => !context.atcAdded?.has(x.callsign) || x.facility <= facilities.TWR);
     }
 
     for (const boundary in dataStore.vatspy.value?.data.features) {

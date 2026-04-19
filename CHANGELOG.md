@@ -1,6 +1,18 @@
 # Changelog
 
+# [2.0.0-alpha.7.6]
+
+## Alpha changes
+
+- Fixed CTR duplications not working
+- Fixed bookings displayed when VATGlasses is on and callsign is different
+- Fixed prefiles not displayed
+- Fixed some sectors such as BIRD not displayed on map
+- Fixed aircraft tracking not working when overlay is in collapsed state
+
 # [2.0.0-alpha.7.5.1]
+
+## Alpha changes
 
 - Fixed next being unusable with no atc and a huge memory leak
 - Fixed some FIRs not showing on map

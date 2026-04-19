@@ -373,6 +373,10 @@ export function setVatsimDataStore(_vatsimData: VatsimLiveCompactDataShort) {
             name: pilot.n,
             callsign: pilot.ca,
             flight_rules: pilot.rl,
+            aircraft_faa: _vatsimData.map.aircraft_faa[pilot.tfa ?? -1],
+            aircraft_short: _vatsimData.map.aircraft_short[pilot.tsh ?? -1],
+            departure: _vatsimData.map.airports[pilot.dep ?? -1],
+            arrival: _vatsimData.map.airports[pilot.arr ?? -1],
         });
     }
 
@@ -545,6 +549,7 @@ export async function setupDataFetch({ onMount, onFetch, onSuccessCallback }: {
 
         if (event.data && 'type' in event.data && event.data.type === 'efbX') {
             store.isTabVisible = event.data.action === 'resume';
+            if (store.isTabVisible) store.getVATSIMData(true);
         }
     }
 
@@ -593,6 +598,7 @@ export async function setupDataFetch({ onMount, onFetch, onSuccessCallback }: {
 
     function setVisibilityState() {
         store.isTabVisible = document.visibilityState === 'visible';
+        if (store.isTabVisible) store.getVATSIMData(true);
     }
 
     onMounted(async () => {
