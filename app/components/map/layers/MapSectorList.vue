@@ -80,7 +80,6 @@ onMounted(async () => {
     const debouncedUpdate = useThrottleFn(async () => {
         if (hideAtc.value || hideOnZoom.value) {
             vectorSource.clear();
-            globalMapEntities.sectors = null;
         }
         else {
             setMapSectors({

@@ -166,7 +166,6 @@ onMounted(() => {
     watch([airportsList, mapSettings, mapRender], async () => {
         if (isHideMapObject('airports')) {
             airportsSource?.clear();
-            globalMapEntities.airports = null;
             navigraphSource?.clear();
             gatesSource?.clear();
             return;
