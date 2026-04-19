@@ -1,5 +1,11 @@
 # Changelog
 
+# [2.0.0-alpha.7.8]
+
+## Alpha Changes
+
+- Fixed Navigraph taxiways not initializing after reload
+
 # [2.0.0-alpha.7.7]
 
 - Fixed real time pilot controller update

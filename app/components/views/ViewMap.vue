@@ -965,6 +965,7 @@ await setupDataFetch({
 
         const mapView = map.value.getView();
         mapStore.zoom = mapView.getZoom() ?? 0;
+        mapStore.preciseZoom = mapView.getZoom() ?? 0;
         mapStore.rotation = toDegrees(mapView.getRotation() ?? 0);
         mapStore.extent = mapView.calculateExtent(map.value!.getSize());
         mapStore.center = mapView.getCenter()!;
