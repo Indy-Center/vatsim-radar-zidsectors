@@ -91,7 +91,7 @@ export const getRenderAirportsList = async ({ airports, visibleAirports }: {
             airportsMap[airportsByFeatureIds[id] ?? '']?.features?.find(x => x.id === id);
 
         if (existingSector) {
-            if (!existingSector.controllers.some(x => x.cid === controller.cid)) {
+            if (!existingSector.controllers.some(x => x.callsign === controller.callsign)) {
                 existingSector.controllers.push(controller);
             }
         }
@@ -126,14 +126,14 @@ export const getRenderAirportsList = async ({ airports, visibleAirports }: {
 
         const backupFeatures: [controller: VatsimShortenedController, sector: SimAwareDataFeature][] = [];
 
-        const added = new Set<number>();
+        const added = new Set<string>();
 
         for (const sector of traconFeatures) {
             const prefixes = getTraconPrefixes(sector);
             const suffix = getTraconSuffix(sector);
 
             for (const controller of arrAtc) {
-                if (added.has(controller.cid)) continue;
+                if (added.has(controller.callsign)) continue;
                 if (controller.facility !== facilities.APP && !suffix) continue;
                 const splittedCallsign = controller.callsign.split('_');
 
@@ -148,16 +148,16 @@ export const getRenderAirportsList = async ({ airports, visibleAirports }: {
                         (splittedCallsign.length === 3 && prefixes.some(x => x.split('_').length === 2 && controller.callsign.startsWith(x)))
                     )
                 ) {
-                    const existing = backupFeatures?.findIndex(x => x[0].cid === controller.cid);
+                    const existing = backupFeatures?.findIndex(x => x[0].callsign === controller.callsign);
                     if (existing !== -1) backupFeatures.splice(existing, 1);
 
                     addFeatureToAirport(sector, airport, controller);
-                    added.add(controller.cid);
+                    added.add(controller.callsign);
                     continue;
                 }
 
                 if (prefixes.some(x => controller.callsign.startsWith(x)) && (!suffix || controller.callsign.endsWith(suffix))) {
-                    const existing = backupFeatures?.findIndex(x => x[0].cid === controller.cid);
+                    const existing = backupFeatures?.findIndex(x => x[0].callsign === controller.callsign);
 
                     if (existing !== -1) {
                         const existingFeature = backupFeatures[existing];

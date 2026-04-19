@@ -203,6 +203,21 @@ async function updateVatsimExtendedPilots() {
                     origPilot.airport = dep.icao;
                 }
             }
+
+            if (extendedPilot.status !== 'arrGate' && extendedPilot.status !== 'arrTaxi') {
+                if (extendedPilot.toGoDist && extendedPilot.toGoDist < 100) {
+                    extendedPilot.airport = arr.icao;
+                    if (!extendedPilot.status && extendedPilot.toGoDist < 40) {
+                        extendedPilot.status = 'arriving';
+                    }
+                }
+                else if (extendedPilot.depDist < 40) {
+                    extendedPilot.airport = dep.icao;
+                    if (!extendedPilot.status) {
+                        extendedPilot.status = 'departed';
+                    }
+                }
+            }
         }
 
         if (extendedPilot.flight_plan?.altitude) {

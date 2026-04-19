@@ -319,8 +319,8 @@ const config = useRuntimeConfig();
 const selectedAchievement = shallowRef<VatsimAchievementUser | null>(null);
 
 const ctafFrequency = computed(() => {
-    const atcList = getAtcList.value.find(x => x.key === 'atc-ctaf');
-    if (atcList) return atcList.controllers?.[0]?.frequency;
+    const ctaf = atcList.value.find(x => x.key === 'atc-ctaf');
+    if (ctaf) return ctaf?.controllers?.[0]?.frequency ?? null;
     return null;
 });
 
@@ -360,7 +360,7 @@ const viewRoute = () => {
 };
 
 const atcSections = computed<InfoPopupSection[]>(() => {
-    const list = getAtcList.value?.slice() as InfoPopupSection[];
+    const list = atcList.value?.slice() as InfoPopupSection[];
 
     if (depRunways.value && props.overlay.data.pilot.status?.startsWith('dep')) {
         list.push({
@@ -422,7 +422,7 @@ const sections = computed<InfoPopupSection[]>(() => {
         });
     }
 
-    if (props.overlay?.data.ipfs && (props.overlay?.data.ipfs.atfcmStatus || getAtcList.value?.length)) {
+    if (props.overlay?.data.ipfs && (props.overlay?.data.ipfs.atfcmStatus || atcList.value?.length)) {
         sections.push({
             key: 'ipfs',
             title: 'vIFF Departure Info',
@@ -482,12 +482,10 @@ type AtcPopupSection = InfoPopupSection & {
 
 const facilities = useFacilitiesIds();
 
-const getAtcList = computed<AtcPopupSection[]>(() => {
-    const sections: AtcPopupSection[] = [];
+const atcList = shallowRef<AtcPopupSection[]>([]);
 
-    // This is intended to add this to recalculation dep
-    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    dataStore.airportsList.value;
+watch(dataStore.airportsList, () => {
+    const sections: AtcPopupSection[] = [];
 
     const additionalATC = getControllersForPosition([pilot.value?.longitude, pilot.value?.latitude]);
 
@@ -605,7 +603,9 @@ const getAtcList = computed<AtcPopupSection[]>(() => {
         }];
     }
 
-    return sections;
+    atcList.value = sections;
+}, {
+  immediate: true
 });
 
 const getStatus = computed(() => {

@@ -255,15 +255,16 @@ export async function updateControllers(context: DataUpdateContext) {
                                     duplicated: true,
                                 };
 
-                                controllers.push(duplicated);
-
                                 // Priority to app
                                 if (duplicatedPositions[duplicated.callsign]) {
                                     if (duplicatedPositions[duplicated.callsign].facility > controller.facility) {
                                         Object.assign(duplicatedPositions[duplicated.callsign], duplicated);
                                     }
                                 }
-                                else duplicatedPositions[duplicated.callsign] = duplicated;
+                                else {
+                                    duplicatedPositions[duplicated.callsign] = duplicated;
+                                    controllers.push(duplicated);
+                                }
                             }
                         }
                     }

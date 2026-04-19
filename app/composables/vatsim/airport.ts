@@ -25,9 +25,14 @@ export function injectAirport(): Ref<StoreOverlayAirport['data']> {
 
 export const getATCForAirport = (data: Ref<StoreOverlayAirport['data']>) => {
     const injected = inject<MaybeRef<VatsimShortenedController[]> | null>('airport-controllers', null);
+    const dataStore = useDataStore();
+    const atc = shallowRef<VatsimShortenedController[]>([]);
 
-    const comp = computed((): VatsimShortenedController[] => {
-        if (injected) return toValue(injected);
+    watch(dataStore.airportsList, () => {
+        if (injected) {
+            atc.value = toValue(injected);
+            return;
+        }
         const dataStore = useDataStore();
 
         let list = dataStore.airportsList.value[data.value.icao]?.atc?.slice(0) ?? [];
@@ -43,7 +48,7 @@ export const getATCForAirport = (data: Ref<StoreOverlayAirport['data']>) => {
         list = sortControllersByPosition(list);
 
         if (!list.length && data.value.airport?.vatInfo?.ctafFreq) {
-            return [
+            atc.value = [
                 {
                     cid: Math.random(),
                     callsign: '',
@@ -55,14 +60,18 @@ export const getATCForAirport = (data: Ref<StoreOverlayAirport['data']>) => {
                     frequency: data.value.airport?.vatInfo?.ctafFreq,
                 },
             ];
+
+            return;
         }
 
-        return list;
+        atc.value = list;
+    }, {
+        immediate: true,
     });
 
-    if (getCurrentInstance() && !injected) provide('airport-controllers', comp);
+    if (getCurrentInstance() && !injected) provide('airport-controllers', atc);
 
-    return comp;
+    return atc;
 };
 
 export type AirportPopupPilotStatus = (VatsimShortenedAircraft | VatsimShortenedPrefile) & {

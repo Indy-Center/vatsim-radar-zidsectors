@@ -1,5 +1,11 @@
 # Changelog
 
+# [2.0.0-alpha.7.7]
+
+- Fixed real time pilot controller update
+- Restored departing/arriving status
+- Fixed more duplicating issues
+
 # [2.0.0-alpha.7.6]
 
 ## Alpha changes
