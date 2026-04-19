@@ -64,8 +64,14 @@
                 text-align="center"
                 :top-items="['Departure info']"
             />
-            <common-info-block
-                v-if="ipfs.aobt"
+            <ui-text-block
+                v-if="ipfs.cdmSts === ViffStatus.REA && ipfs.atfcmStatus !== ViffStatus.REA"
+                :bottom-items="['Ready']"
+                text-align="center"
+                :top-items="['Ready status']"
+            />
+            <ui-text-block
+                v-else-if="ipfs.aobt"
                 :bottom-items="[`${ ipfs.aobt.slice(0,4) }z`]"
                 text-align="center"
                 :top-items="['AOBT']"
@@ -205,8 +211,8 @@
 
 <script setup lang="ts">
 import type { PropType } from 'vue';
-import type { IpfsUser, VatsimExtendedPilot } from '~/types/data/vatsim';
 import { ViffRegulationType, ViffStatus } from '~/types/data/vatsim';
+import type { IpfsUser, VatsimExtendedPilot } from '~/types/data/vatsim';
 import QuestionIcon from 'assets/icons/basic/question.svg?component';
 import CommonTooltip from '~/components/common/basic/CommonTooltip.vue';
 import type { TooltipLocation } from '~/components/common/basic/CommonTooltip.vue';
