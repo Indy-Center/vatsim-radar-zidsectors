@@ -499,7 +499,7 @@ const restoreOverlays = async () => {
     for (const overlay of localOverlays) {
         try {
             const existingOverlay = mapStore.overlays.find(x => x.key === overlay.key);
-            if (existingOverlay) return;
+            if (existingOverlay) continue;
 
             if (overlay.type === 'pilot') {
                 await mapStore.addPilotOverlay(overlay.key, undefined, overlay);

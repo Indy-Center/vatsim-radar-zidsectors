@@ -289,7 +289,10 @@ export const useMapStore = defineStore('map', {
             aircraftTab?: StoreOverlayAirport['data']['aircraftTab'];
             tab?: StoreOverlayAirport['data']['tab'];
         } = {}, params?: PartialOverlayParams<StoreOverlayAirport>) {
-            if (this.openingOverlay) return;
+            if (this.openingOverlay) {
+                console.log('already opening');
+                return;
+            }
             this.openingOverlay = true;
 
             const store = useStore();
