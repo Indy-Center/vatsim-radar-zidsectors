@@ -605,7 +605,7 @@ watch(dataStore.airportsList, () => {
 
     atcList.value = sections;
 }, {
-  immediate: true
+    immediate: true,
 });
 
 const getStatus = computed(() => {
