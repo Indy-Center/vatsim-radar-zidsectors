@@ -4,6 +4,8 @@
 
 - Added vIFF & CDM system integration
 - Fixed SID transition selection not working
+- Refactor MMEX from ICAO to IATA and adds MMZT, MMID and MMTY ACC's | VATMEX
+- Updated ZME Regex Pattern
 
 # [1.2.4-6.4]
 
