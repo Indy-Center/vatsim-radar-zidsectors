@@ -78,7 +78,7 @@
             Reason for the CTOT: {{ ipfs.cdmData.reason }}
         </ui-notification>
         <div
-            v-if="store.user?.cid === props.pilot.cid.toString()"
+            v-if="store.user?.cid === props.pilot.cid.toString() && ipfs.atfcmStatus !== ViffStatus.ATC_ACTIV && !ipfs.aobt"
             class="ipfs-info_obt"
         >
             <ui-block-title
@@ -143,22 +143,79 @@
                     Save
                 </ui-button>
             </div>
+            <ui-button
+                v-if="ipfs.ctot && ipfs.atfcmStatus !== ViffStatus.REA && ipfs.cdmSts !== ViffStatus.REA"
+                size="S"
+                @click="readyPopup = true"
+            >
+                Ready now
+            </ui-button>
+            <ui-button
+                v-else-if="ipfs.atfcmStatus === ViffStatus.REA || ipfs.cdmSts === ViffStatus.REA"
+                size="S"
+                type="secondary"
+                @click="setReadyStatus(false)"
+            >
+                Not ready
+            </ui-button>
         </div>
+        <popup-fullscreen
+            v-model="readyPopup"
+            :disabled="saving"
+        >
+            <template #title>
+                Ready now
+            </template>
+
+            This action will try to improve your CTOT.<br><br>
+
+            To be able to proceed, you must <strong>ACKNOWLEDGE</strong> that:
+            <ul>
+                <li>
+                    The aircraft is fully prepared for start-up
+                </li>
+                <li>
+                    The tow truck is connected and standing by for pushback (not applicable for taxi-out positions)
+                </li>
+                <li>
+                    All pre-departure checks are complete
+                </li>
+            </ul>
+
+            Proceed only if above conditions are met.
+
+            <template #actions>
+                <ui-button
+                    :disabled="saving"
+                    type="secondary"
+                    @click="readyPopup = false"
+                >
+                    Cancel that please
+                </ui-button>
+                <ui-button
+                    :disabled="saving"
+                    @click="setReadyStatus(true)"
+                >
+                    Set REA(DY) status
+                </ui-button>
+            </template>
+        </popup-fullscreen>
     </div>
 </template>
 
 <script setup lang="ts">
 import type { PropType } from 'vue';
-import { ViffRegulationType, ViffStatus } from '~/types/data/vatsim';
 import type { IpfsUser, VatsimExtendedPilot } from '~/types/data/vatsim';
+import { ViffRegulationType, ViffStatus } from '~/types/data/vatsim';
 import QuestionIcon from 'assets/icons/basic/question.svg?component';
 import UiButton from '~/components/ui/buttons/UiButton.vue';
 import UiInputNumber from '~/components/ui/inputs/UiInputNumber.vue';
 import UiNotification from '~/components/ui/data/UiNotification.vue';
-import UiTooltip from '~/components/ui/data/UiTooltip.vue';
 import type { TooltipLocation } from '~/components/ui/data/UiTooltip.vue';
+import UiTooltip from '~/components/ui/data/UiTooltip.vue';
 import UiTextBlock from '~/components/ui/text/UiTextBlock.vue';
 import UiBlockTitle from '~/components/ui/text/UiBlockTitle.vue';
+import PopupFullscreen from '~/components/popups/PopupFullscreen.vue';
 
 const props = defineProps({
     pilot: {
@@ -178,6 +235,7 @@ const emit = defineEmits({
 });
 
 const store = useStore();
+const readyPopup = ref(false);
 
 interface Block {
     title: string;
@@ -270,10 +328,30 @@ const hrs = ref(0);
 const mins = ref(0);
 const saving = ref(false);
 
+async function setReadyStatus(ready: boolean) {
+    saving.value = true;
+    try {
+        const data = await $fetch<IpfsUser>(`/api/data/vatsim/pilot/${ props.pilot.cid }/ipfs`, {
+            timeout: 1000 * 15,
+            method: 'POST',
+            body: {
+                ready,
+            },
+        });
+
+        emit('saved', data);
+        readyPopup.value = false;
+    }
+    catch (e) {
+        useRadarError(e);
+    }
+    saving.value = false;
+}
+
 async function saveEstimate() {
     saving.value = true;
     try {
-        const data = await $fetch<IpfsUser>(`/api/data/vatsim/pilot/${ props.pilot.cid }/ipfs?date=${ Date.now() }`, {
+        const data = await $fetch<IpfsUser>(`/api/data/vatsim/pilot/${ props.pilot.cid }/ipfs`, {
             timeout: 1000 * 15,
             method: 'POST',
             body: {
