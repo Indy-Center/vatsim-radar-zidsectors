@@ -367,6 +367,12 @@ export enum ViffStatus {
     AIRB = 'AIRB',
 }
 
+export enum ViffRegulationType {
+    AD = 'AD',
+    ENR = 'ENR',
+    ECFMP = 'ECFMP',
+}
+
 export interface IpfsUser {
     departure: string;
     eobt: string;
@@ -381,7 +387,6 @@ export interface IpfsUser {
     isCdm: boolean;
     onTime: '0' | '1';
     atfcmStatus: ViffStatus;
-    mostPenalizingAirspace: string;
     cdmData: {
         tobt: string;
         tsat: string;
@@ -393,5 +398,9 @@ export interface IpfsUser {
         reqAsrt: string;
         reqTobt: string;
         reqTobtType: string;
+        mostPenalisingRegulation: string;
+        mostPenalisingRegulationType: ViffRegulationType;
+        // Comma-separated
+        regulations: string;
     };
 }

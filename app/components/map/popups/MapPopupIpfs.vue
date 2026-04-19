@@ -116,7 +116,7 @@
                 v-if="props.ipfs?.atfcmStatus.startsWith('FLS')"
                 type="error"
             >
-                Your slot has been suspended. Please, update your OBT
+                Your flight has been suspended. Please, update your OBT
             </common-notification>
 
             <div class="ipfs-info__cols">
@@ -149,7 +149,7 @@
 
 <script setup lang="ts">
 import type { PropType } from 'vue';
-import { ViffStatus } from '~/types/data/vatsim';
+import { ViffRegulationType, ViffStatus } from '~/types/data/vatsim';
 import type { IpfsUser, VatsimExtendedPilot } from '~/types/data/vatsim';
 import QuestionIcon from 'assets/icons/basic/question.svg?component';
 import CommonTooltip from '~/components/common/basic/CommonTooltip.vue';
@@ -206,7 +206,7 @@ const blocks = computed(() => {
 
     if (!props.ipfs?.isCdm && (props.ipfs?.obt || props.ipfs?.eobt)) {
         items.push({
-            title: props.ipfs.obt ? 'OBT' : 'EOBT',
+            title: 'OBT',
             value: `${ (props.ipfs.obt || props.ipfs.eobt).slice(0, 4) }z`,
             hint: 'Target Off-Blocks Time. The time your aircraft is expected to be ready for start-up and pushback',
         });
@@ -236,11 +236,24 @@ const blocks = computed(() => {
         });
     }
 
-    if (props.ipfs.mostPenalizingAirspace) {
+    if (props.ipfs.cdmData.mostPenalisingRegulation) {
+        let hint: string | undefined;
+        switch (props.ipfs.cdmData.mostPenalisingRegulationType) {
+            case ViffRegulationType.AD:
+                hint = 'Regulation due to airport';
+                break;
+            case ViffRegulationType.ENR:
+                hint = 'Enroute regulation';
+                break;
+            case ViffRegulationType.ECFMP:
+                hint = 'ECFMP regulation';
+                break;
+        }
+
         items.push({
             title: 'REGUL',
-            value: props.ipfs.mostPenalizingAirspace,
-            hint: (props.ipfs.mostPenalizingAirspace.endsWith('-E') || props.ipfs.mostPenalizingAirspace.endsWith('-O')) ? 'Regulation due to destination airport' : 'Airspace regulation',
+            value: props.ipfs.cdmData.mostPenalisingRegulation,
+            hint,
         });
     }
 

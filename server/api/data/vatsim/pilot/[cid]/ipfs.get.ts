@@ -24,7 +24,7 @@ export default defineEventHandler(async (event): Promise<IpfsUser | undefined> =
         return;
     }
 
-    const viffData = await $fetch<IpfsUser>(`https://viff-system.network/ifps/callsign?callsign=${ pilot.callsign }`, {
+    const viffData = await $fetch<IpfsUser>(`https://viff-system.network/ifps/callsign?callsign=${ pilot.callsign }&profile=false`, {
         timeout: 1000 * 10,
     }).catch(() => {});
 
