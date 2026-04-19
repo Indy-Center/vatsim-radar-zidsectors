@@ -6,6 +6,10 @@
 - Restored departing/arriving status
 - Fixed more duplicating issues
 
+## Features and improvements
+
+- Bookings now update more consistently and every 5 minutes instead of 15
+
 # [2.0.0-alpha.7.6]
 
 ## Alpha changes

@@ -487,6 +487,8 @@ export function setVatsimMandatoryData(mandatoryData: VatsimMandatoryData) {
     vatsim._mandatoryData.value = vatsim.mandatoryData.value;
 }
 
+let bookingsInterval: NodeJS.Timeout | undefined;
+
 function initBookings() {
     const store = useStore();
     const dataStore = useDataStore();
@@ -517,11 +519,18 @@ function initBookings() {
 
     const bookingHours = computed(() => store.mapSettings.bookingHours);
     // Every 15 minutes
-    const needToUpdate = computed(() => dataStore.time.value - lastUpdate > 1000 * 60 * 15);
+    const needToUpdate = computed(() => dataStore.time.value - lastUpdate > 1000 * 60 * 5);
 
     watch(bookingsQueryParams, updateBookings);
     watch(bookingHours, updateEnd, { immediate: true });
-    watch(needToUpdate, val => val && updateEnd(), { immediate: true });
+
+    if (!bookingsInterval) {
+        bookingsInterval = setInterval(() => {
+            if (needToUpdate.value) updateEnd();
+        }, 1000 * 30);
+    }
+
+    updateEnd();
 }
 
 export async function setupDataFetch({ onMount, onFetch, onSuccessCallback }: {
