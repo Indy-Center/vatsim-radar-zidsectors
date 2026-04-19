@@ -402,6 +402,7 @@ export async function updateControllers(context: DataUpdateContext) {
                 if (!context.airports[airport.icao!].airport) context.airports[airport.icao!].airport = airport as VatSpyAirport;
 
                 dataAirport = context.airports[airport.icao!];
+                if (context.airports[airport.icao!].airport?.isPseudo && (!airport.isPseudo || context.airports[airport.icao!].aircraftCount)) context.airports[airport.icao!].airport!.isPseudo = false;
             }
 
             if (!dataAirport) continue;

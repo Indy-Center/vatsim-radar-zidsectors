@@ -5,6 +5,8 @@
 ## Alpha Changes
 
 - Fixed Navigraph taxiways not initializing after reload
+- Fixed sectors not displaying in ATC tab
+- Fixed some airports not showing in popular/quiet and being marked as pseudo, resulting in disappearing from multiple places
 
 # [2.0.0-alpha.7.7]
 
