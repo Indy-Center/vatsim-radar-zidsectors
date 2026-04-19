@@ -7,7 +7,7 @@ const obtRegex = /^\d{4}$/;
 
 export default defineEventHandler(async (event): Promise<IpfsUser | undefined> => {
     const config = useRuntimeConfig();
-    const body = await readBody<{ obt: string }>(event);
+    const body = await readBody<{ obt?: string; ready?: boolean }>(event);
 
     if (!config.VIFF_API_TOKEN) {
         handleH3Error({
@@ -18,23 +18,43 @@ export default defineEventHandler(async (event): Promise<IpfsUser | undefined> =
         return;
     }
 
-    if (!body.obt || !obtRegex.test(body.obt)) {
+    if (body.obt) {
+        if (!obtRegex.test(body.obt)) {
+            handleH3Error({
+                event,
+                statusCode: 400,
+                data: 'Incorrect OBT format',
+            });
+            return;
+        }
+
+        const hours = body.obt.slice(0, 2);
+        const mins = body.obt.slice(2, 4);
+
+        if (+hours < 0 || +hours > 23 || +mins < 0 || +mins > 59) {
+            handleH3Error({
+                event,
+                statusCode: 400,
+                data: 'Incorrect OBT format',
+            });
+            return;
+        }
+    }
+
+    if ('ready' in body && typeof body.ready !== 'boolean') {
         handleH3Error({
             event,
             statusCode: 400,
-            data: 'Incorrect OBT format',
+            data: 'Incorrect ready format',
         });
         return;
     }
 
-    const hours = body.obt.slice(0, 2);
-    const mins = body.obt.slice(2, 4);
-
-    if (+hours < 0 || +hours > 23 || +mins < 0 || +mins > 59) {
+    if ((!('ready' in body) && !body.obt) || (('ready' in body) && body.obt)) {
         handleH3Error({
             event,
             statusCode: 400,
-            data: 'Incorrect OBT format',
+            data: 'Exactly one param is required: obt or ready',
         });
         return;
     }
@@ -93,13 +113,25 @@ export default defineEventHandler(async (event): Promise<IpfsUser | undefined> =
         return;
     }
 
-    await $fetch<IpfsUser>(`https://viff-system.network/ifps/dpi?callsign=${ pilot.callsign }&value=TOBT/${ body.obt }`, {
+    const url = new URL('https://viff-system.network/ifps/dpi');
+    url.searchParams.set('callsign', pilot.callsign);
+
+    if ('ready' in body) {
+        url.searchParams.set('value', `REA/${ Number(body.ready) }`);
+    }
+    else if (body.obt) {
+        url.searchParams.set('value', `TOBT/${ body.obt }`);
+    }
+
+    await $fetch<IpfsUser>(url.toString(), {
         method: 'POST',
         timeout: 1000 * 10,
         headers: {
             'x-api-key': config.VIFF_API_TOKEN,
         },
     });
+
+    console.log(url.toString());
 
     viffData = await $fetch<IpfsUser>(`https://viff-system.network/ifps/callsign?callsign=${ pilot.callsign }&profile=false`, {
         timeout: 1000 * 10,

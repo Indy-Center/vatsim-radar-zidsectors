@@ -27,7 +27,7 @@
                 disabled: !atcSections.length,
             },
         }"
-        @collapsedSection="(event) => event.key === 'achievements' && (collapsedAchievements = event.value)"
+        @collapsedSection="(event) => event.key === 'achievements' ? (collapsedAchievements = event.value) : event.key === 'ipfs' ? (collapsedViff = event.value) : undefined"
         @update:modelValue="!$event ? [store.user && pilot.cid === ownFlight?.cid && (mapStore.closedOwnOverlay = true), mapStore.overlays = mapStore.overlays.filter(x => x.id !== overlay.id)] : undefined"
     >
         <template #title>
@@ -317,6 +317,14 @@ const collapsedAchievements = useCookie<boolean>('collapsedAchievements', {
     path: '/',
     maxAge: 60 * 60 * 24 * 7 * 360,
 });
+
+const collapsedViff = useCookie<boolean>('collapsedViff', {
+    secure: true,
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 60 * 60 * 24 * 7 * 360,
+});
+
 const copy = useCopyText();
 
 const store = useStore();
@@ -435,6 +443,8 @@ const sections = computed<InfoPopupSection[]>(() => {
         sections.push({
             key: 'ipfs',
             title: 'vIFF Departure Info',
+            collapsedDefault: !!collapsedViff.value,
+            collapsedDefaultOnce: true,
             collapsible: true,
         });
     }

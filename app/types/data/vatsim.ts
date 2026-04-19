@@ -387,6 +387,7 @@ export interface IpfsUser {
     isCdm: boolean;
     onTime: '0' | '1';
     atfcmStatus: ViffStatus;
+    cdmSts: ViffStatus;
     cdmData: {
         tobt: string;
         tsat: string;
