@@ -360,7 +360,7 @@ export const duplicatingSettings = [
      * @author 1098471
      */
     {
-        regex: /(^|\b|_)(?:MEM|BNA|LIT|FSM|JAN|HSV|HOP|NMM|CBM)(^|\b|_)/i,
+        regex: /^MEM_\d{1,3}_CTR$/,
         mapping: {
             MEM: 'MEM_E_APP',
             BNA: 'BNA_X_DEP',
