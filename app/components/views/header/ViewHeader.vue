@@ -122,11 +122,11 @@
                 </common-button>
             </div>
             <div
-                v-if="config.public.IS_DOWN !== 'true'"
+                v-if="config.public.IS_DOWN !== 'true' && (store.user || !isIframe)"
                 class="header__sections_section"
             >
                 <common-button
-                    v-if="!store.user"
+                    v-if="!store.user && !isIframe"
                     href="/api/auth/vatsim/redirect"
                     size="S"
                 >
@@ -138,7 +138,7 @@
                     </template>
                 </common-button>
                 <div
-                    v-else
+                    v-else-if="store.user"
                     class="header__user"
                 >
                     {{ store.user.settings.headerName || store.user.fullName.split(' ')[0] }}
@@ -282,6 +282,7 @@ import StarFilledIcon from '@/assets/icons/kit/star-filled.svg?component';
 import CommonBubble from '~/components/common/basic/CommonBubble.vue';
 import LoadOnPcIcon from '~/assets/icons/kit/load-on-pc.svg?component';
 import CommonTooltip from '~/components/common/basic/CommonTooltip.vue';
+import { isIframe } from '~/composables';
 
 const headerMenu = useHeaderMenu();
 

@@ -1,6 +1,6 @@
 {
   "name": "vatsim-radar",
-  "version": "1.2.4-6.4",
+  "version": "1.2.4-7",
   "private": true,
   "type": "module",
   "scripts": {
@@ -76,8 +76,8 @@
     "rou3": "^0.7.12",
     "sharp": "^0.34.5",
     "sqlite3": "^5.1.7",
-    "srvx": "^0.10.0",
-    "svgo": "^4.0.0",
+    "srvx": "^0.11.15",
+    "svgo": "^4.0.1",
     "ua-parser-js": "2.0.7",
     "vite-plugin-pwa": "^1.2.0",
     "vite-svg-loader": "^5.1.0",
@@ -104,7 +104,7 @@
     "@types/ol-ext": "npm:@siedlerchr/types-ol-ext@latest",
     "@types/ws": "^8.18.1",
     "eslint": "^9.39.2",
-    "fast-xml-parser": "^5.4.2",
+    "fast-xml-parser": "^5.7.1",
     "postcss": "^8.5.6",
     "postcss-html": "^1.8.0",
     "sass-embedded": "^1.97.1",

@@ -27,7 +27,7 @@
                 disabled: !atcSections.length,
             },
         }"
-        @collapsedSection="(event) => event.key === 'achievements' && (collapsedAchievements = event.value)"
+        @collapsedSection="(event) => event.key === 'achievements' ? (collapsedAchievements = event.value) : event.key === 'ipfs' ? (collapsedViff = event.value) : undefined"
         @update:modelValue="!$event ? [store.user && pilot.cid === ownFlight?.cid && (mapStore.closedOwnOverlay = true), mapStore.overlays = mapStore.overlays.filter(x => x.id !== overlay.id)] : undefined"
     >
         <template #title>
@@ -109,6 +109,13 @@
                 :is-offline="isOffline"
                 :pilot
                 @viewRoute="viewRoute()"
+            />
+        </template>
+        <template #ipfs>
+            <map-popup-ipfs
+                :ipfs="overlay.data.ipfs!"
+                :pilot
+                @saved="[overlay.data.ipfs = $event, ipfsCacheDate = Date.now()]"
             />
         </template>
         <template #graph>
@@ -260,7 +267,7 @@ import type { InfoPopupSection } from '~/components/common/popup/CommonInfoPopup
 import type {
     VatsimAchievementUser,
     VatsimExtendedPilot,
-    VatsimShortenedController,
+    VatsimShortenedController, IpfsUser,
 } from '~/types/data/vatsim';
 import TrackIcon from 'assets/icons/kit/track.svg?component';
 import LocationIcon from '@/assets/icons/kit/location.svg?component';
@@ -292,6 +299,7 @@ import CommonToggle from '~/components/common/basic/CommonToggle.vue';
 import AirportProcedures from '~/components/views/airport/AirportProcedures.vue';
 import { isVatGlassesActive } from '~/utils/data/vatglasses';
 import CommonBlockTitle from '~/components/common/blocks/CommonBlockTitle.vue';
+import MapPopupIpfs from '~/components/map/popups/MapPopupIpfs.vue';
 
 const props = defineProps({
     overlay: {
@@ -309,6 +317,14 @@ const collapsedAchievements = useCookie<boolean>('collapsedAchievements', {
     path: '/',
     maxAge: 60 * 60 * 24 * 7 * 360,
 });
+
+const collapsedViff = useCookie<boolean>('collapsedViff', {
+    secure: true,
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 60 * 60 * 24 * 7 * 360,
+});
+
 const copy = useCopyText();
 
 const store = useStore();
@@ -420,6 +436,17 @@ const sections = computed<InfoPopupSection[]>(() => {
             collapsedDefault: true,
             collapsedDefaultOnce: true,
             collapsible: true,
+        });
+    }
+
+    if (props.overlay?.data.ipfs && (props.overlay?.data.ipfs.atfcmStatus || getAtcList.value?.length)) {
+        sections.push({
+            key: 'ipfs',
+            title: 'vIFF Departure Info',
+            collapsedDefault: !!collapsedViff.value,
+            collapsedDefaultOnce: true,
+            collapsible: true,
+            bubble: props.overlay?.data.ipfs.isCdm ? 'CDM online' : undefined,
         });
     }
 
@@ -595,6 +622,7 @@ const getStatus = computed(() => {
 });
 
 const loading = ref(false);
+const ipfsCacheDate = ref(0);
 
 watch(dataStore.vatsim.updateTimestamp, async () => {
     if (loading.value) return;
@@ -603,6 +631,19 @@ watch(dataStore.vatsim.updateTimestamp, async () => {
         props.overlay.data.pilot = await $fetch<VatsimExtendedPilot>(`/api/data/vatsim/pilot/${ props.overlay.key }`, {
             timeout: 1000 * 15,
         });
+
+        if (pilot.value.status === 'depTaxi' || pilot.value.status === 'depGate') {
+            const previousIpfsData = props.overlay.data.ipfs;
+
+            props.overlay.data.ipfs = await $fetch<IpfsUser>(`/api/data/vatsim/pilot/${ props.overlay.key }/ipfs?date=${ ipfsCacheDate.value }`, {
+                timeout: 1000 * 15,
+            }).catch(() => {
+            }) ?? previousIpfsData;
+        }
+        else if (props.overlay.data.ipfs) {
+            props.overlay.data.ipfs = undefined;
+        }
+
         isOffline.value = false;
     }
     catch (e: IFetchError | any) {

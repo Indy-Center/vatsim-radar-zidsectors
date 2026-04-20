@@ -2,8 +2,11 @@
     <div
         v-if="dataStore.versions.value?.navigraph"
         class="airac"
-        :class="{ 'airac--current': !!store.user?.hasFms }"
-        @click="!store.user?.hasFms ? store.airacPopup = true : undefined"
+        :class="{
+            'airac--current': !!store.user?.hasFms,
+            'airac--upgrade': !store.user?.hasFms && !isIframe,
+        }"
+        @click="(!store.user?.hasFms && !isIframe) ? store.airacPopup = true : undefined"
     >
         <img
             alt="Navigraph"
@@ -16,6 +19,11 @@
                 dataStore.versions.value.navigraph.current.split('-')[0]
             }}
         </template>
+        <template v-else-if="isIframe">
+            AIRAC {{
+                dataStore.versions.value.navigraph.outdated.split('-')[0]
+            }}
+        </template>
         <template v-else>
             Connect Navigraph
         </template>
@@ -24,6 +32,7 @@
 
 <script setup lang="ts">
 import { useStore } from '~/store';
+import { isIframe } from '~/composables';
 
 const dataStore = useDataStore();
 const store = useStore();
@@ -31,7 +40,7 @@ const store = useStore();
 
 <style lang="scss" scoped>
 .airac {
-    cursor: pointer;
+    cursor: default;
 
     display: flex;
     gap: 8px;
@@ -47,9 +56,12 @@ const store = useStore();
     background: $darkgray950;
 
     &--current {
-        cursor: default;
         color: $lightgray125;
         background: linear-gradient(90deg, rgb(184, 42, 20, 0.25) 0%, $darkgray950 75%);
+    }
+
+    &--upgrade {
+        cursor: pointer;
     }
 }
 </style>

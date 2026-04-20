@@ -345,3 +345,6 @@ export const geoJson = new GeoJSON({
 export const updatePopupActive: false | string = false;
 export const showUpdatePopup = computed(() => !useStore().config.hideHeader && !!updatePopupActive && useStore().user?.settings.seenVersion !== updatePopupActive && localStorage.getItem('seen-version') !== updatePopupActive);
 
+export const isIframe = computed(() => {
+    return useRoute().query.iframe;
+});
