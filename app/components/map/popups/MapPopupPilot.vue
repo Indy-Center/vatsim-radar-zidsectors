@@ -446,6 +446,7 @@ const sections = computed<InfoPopupSection[]>(() => {
             collapsedDefault: !!collapsedViff.value,
             collapsedDefaultOnce: true,
             collapsible: true,
+            bubble: props.overlay?.data.ipfs.isCdm ? 'CDM online' : undefined,
         });
     }
 

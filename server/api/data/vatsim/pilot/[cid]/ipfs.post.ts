@@ -120,7 +120,7 @@ export default defineEventHandler(async (event): Promise<IpfsUser | undefined> =
         url.searchParams.set('value', `REA/${ Number(body.ready) }`);
     }
     else if (body.obt) {
-        url.searchParams.set('value', `TOBT/${ body.obt }`);
+        url.searchParams.set('value', `REQTOBT/${ body.obt }/PILOT`);
     }
 
     await $fetch<IpfsUser>(url.toString(), {
