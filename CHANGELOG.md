@@ -353,7 +353,10 @@ Known Issues:
 
 # [1.2.4-7]
 
-- Added vIFF & CDM system integration
+- Added vIFF & CDM system integration. Learn more: https://cdm.vatsimspain.es/
+- Fixed SID transition selection not working
+- Refactor MMEX from ICAO to IATA and adds MMZT, MMID and MMTY ACC's | VATMEX
+- Updated ZME Regex Pattern
 
 # [1.2.4-6.4]
 
