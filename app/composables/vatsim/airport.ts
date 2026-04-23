@@ -23,16 +23,19 @@ export function injectAirport(): Ref<StoreOverlayAirport['data']> {
     return shallowRef(injection);
 }
 
-export const getATCForAirport = (data: Ref<StoreOverlayAirport['data']>) => {
+export const getATCForAirport = (data: Ref<StoreOverlayAirport['data'] | null>) => {
     const injected = inject<MaybeRef<VatsimShortenedController[]> | null>('airport-controllers', null);
     const dataStore = useDataStore();
     const atc = shallowRef<VatsimShortenedController[]>([]);
 
-    watch(dataStore.airportsList, () => {
+    watch([dataStore.airportsList, data], () => {
         if (injected) {
             atc.value = toValue(injected);
             return;
         }
+
+        if (!data.value) return;
+
         const dataStore = useDataStore();
 
         let list = dataStore.airportsList.value[data.value.icao]?.atc?.slice(0) ?? [];

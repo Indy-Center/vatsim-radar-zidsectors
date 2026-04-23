@@ -116,6 +116,11 @@ function addSector(context: DataUpdateContext, sector: FirFindResult, controller
         : sector.fir.boundary;
 
     const existingSector = context.sectors[sectorKey];
+
+    if (existingSector?.uir && controller && !uir) {
+        existingSector.uirWithFir = true;
+    }
+
     if (existingSector && controller) {
         // Don't add booking controllers to same sectors
         if (controller.isBooking && existingSector.atc.length) return;
@@ -373,6 +378,8 @@ export async function updateControllers(context: DataUpdateContext) {
             }
 
             let dataAirport: DataAirport | undefined;
+
+            if (isApp && !feature && airport?.isPseudo) continue;
 
             if (!airport && feature) {
                 const key = feature?.properties.id + feature?.properties.prefix.join(',');

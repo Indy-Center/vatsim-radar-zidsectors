@@ -8,11 +8,10 @@ import {
 import { createMapFeature, getMapFeature, isMapFeature } from '~/utils/map/entities';
 import type { FeatureSectorVG, FeatureAirportSectorDefaultProperties } from '~/utils/map/entities';
 
-export function setMapSectors({ source, firs, layer, labelsSource, labelsLayer }: {
+export function setMapSectors({ source, firs, layer, labelsLayer }: {
     source: VectorSource;
     layer: VectorLayer;
 
-    labelsSource: VectorSource;
     labelsLayer: VectorLayer;
 
     firs: DataSector[];
@@ -33,7 +32,7 @@ export function setMapSectors({ source, firs, layer, labelsSource, labelsLayer }
     for (const fir of firs) {
         const controllers = fir.atc;
         const sectorType: FeatureAirportSectorDefaultProperties['sectorType'] = controllers.length
-            ? fir.uir ? 'uir' : 'fir'
+            ? (fir.uir && !fir.uirWithFir) ? 'uir' : 'fir'
             : 'empty';
 
         const id: any = 'sector-' + String(fir.fir?.icao) + String(fir.fir?.callsign) + String(fir.feature.properties.id) + String(sectorType);
@@ -43,15 +42,27 @@ export function setMapSectors({ source, firs, layer, labelsSource, labelsLayer }
         const isBooking = store.bookingOverride || (!!controllers.length && controllers.every(x => x.booking));
         const isDuplicated = !!controllers.length && controllers.every(x => x.duplicated);
 
+        let icao = fir.uir?.icao ?? fir.fir?.icao ?? fir.feature.properties.id;
+        let uir = fir.uir
+            ? fir.fir?.icao ?? fir.feature.properties.id
+            : undefined;
+        let name = fir.uir?.name ?? fir.fir?.name ?? fir.feature.properties.id;
+
+        if (fir.uirWithFir) {
+            icao = fir.fir?.icao ?? fir.feature.properties.id;
+            uir = fir.uir?.icao;
+            name = fir.fir?.name ?? fir.feature.properties.id;
+        }
+
         if (existingFeature) {
             existingFeature.setProperties({
                 sectorType,
                 booked: isBooking,
                 duplicated: isDuplicated,
                 atc: controllers,
-                icao: fir.fir?.icao ?? fir.feature.properties.id,
-                uir: fir.uir?.icao,
-                name: fir.uir?.name ?? fir.fir?.name ?? fir.feature.properties.id,
+                icao,
+                uir,
+                name,
             });
         }
         else {
@@ -66,13 +77,12 @@ export function setMapSectors({ source, firs, layer, labelsSource, labelsLayer }
                 label: fir.feature.properties.label,
                 duplicated: isDuplicated,
                 atc: controllers,
-                icao: fir.fir?.icao ?? fir.feature.properties.id,
-                uir: fir.uir?.icao,
-                name: fir.uir?.name ?? fir.fir?.name ?? fir.feature.properties.id,
+                icao,
+                uir,
+                name,
                 isOceanic: fir.feature.properties.oceanic,
             });
             source.addFeature(feature);
-            labelsSource.addFeature(feature);
         }
     }
 
@@ -121,13 +131,11 @@ export function setMapSectors({ source, firs, layer, labelsSource, labelsLayer }
 
                     existingFeatures?.forEach(x => {
                         source.removeFeature(x);
-                        labelsSource.removeFeature(x);
                         x.dispose();
                     });
 
                     features?.forEach(x => {
                         source.addFeature(x);
-                        labelsSource.addFeature(x);
                     });
                 }
                 else {
@@ -140,17 +148,13 @@ export function setMapSectors({ source, firs, layer, labelsSource, labelsLayer }
         }
     }
 
-    const features = [
-        ...source.getFeatures().slice(0),
-        ...labelsSource.getFeatures().slice(0),
-    ];
+    const features = source.getFeatures().slice(0);
 
     for (const feature of features) {
         const properties = feature.getProperties();
 
         if ((isMapFeature('sector', properties) && !activeIds.has(properties.id)) || (isMapFeature('sector-vatglasses', properties) && !activeIds.has(properties.vgSectorId))) {
             source.removeFeature(feature);
-            labelsSource.removeFeature(feature);
             feature.dispose();
         }
     }

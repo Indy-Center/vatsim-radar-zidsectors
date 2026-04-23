@@ -1,5 +1,4 @@
 import {
-
     isVatGlassesActive,
 } from '~/utils/data/vatglasses';
 import type { VatglassesSectorProperties, VatglassesActiveAirspaces, VatglassesActivePositions } from '~/utils/data/vatglasses';
@@ -18,8 +17,6 @@ import { stringToArray } from '~/utils/shared';
 
 let worker: Worker | null = null;
 
-const store = useStore();
-
 let facilities: {
     ATIS: number;
     OBS: number;
@@ -30,8 +27,6 @@ let facilities: {
     APP: number;
     CTR: number;
 };
-
-const dataStore = useDataStore();
 
 const ignoredPositions = ['ASIAW', 'ASEAN', 'ASEAS', 'RUSC', 'RUCEN', 'RUWSC', 'RUESC', 'RUWRC', 'RUERC', ['56', 'NY']];
 
@@ -175,6 +170,9 @@ let firstRun = true;
 
 export async function updateVATGlasses(context: DataUpdateContext) {
     if (!isVatGlassesActive.value) return;
+
+    const store = useStore();
+    const dataStore = useDataStore();
 
     const { airports } = context;
     const { default: combinedWorker } = await import('~/composables/render/combination-worker.ts?worker');

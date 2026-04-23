@@ -50,6 +50,7 @@ import type { RadarNotam } from '~/utils/shared/vatsim';
 import type { Coordinate } from 'ol/coordinate.js';
 import type { Feature, MultiPolygon } from 'geojson';
 import type { AirportListItem, AirportTraconFeature } from '~/composables/render/airports';
+import { initControllersUpdate } from '~/composables/render/update';
 
 const versions = ref<null | VatDataVersions>(null);
 const vatspy = shallowRef<DataStoreVatspy>();
@@ -190,6 +191,7 @@ export interface DataAirport {
 export interface DataSector {
     fir?: VatSpyData['firs'][number];
     uir?: VatSpyData['uirs'][number];
+    uirWithFir?: boolean;
     feature: Feature<MultiPolygon, VatSpyDataProperties>;
     atc: VatsimShortenedController[];
 }
@@ -641,6 +643,8 @@ export async function setupDataFetch({ onMount, onFetch, onSuccessCallback }: {
             if (store.initStatus.status !== false) return;
             store.user!.lists = await $fetch<UserList[]>('/api/user/lists');
         });
+
+        initControllersUpdate();
 
         initBookings();
 

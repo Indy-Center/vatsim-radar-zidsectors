@@ -1,5 +1,13 @@
 # Changelog
 
+# [2.0.0-alpha.7.9]
+
+- Attempt to fix holdings memory leak
+- Attempt to fix random circles appearing
+- Attempt to fix booking/active controller live bugs (booking continues to show after controller is online etc)
+- Fixed controller dashboard crash
+- Fixed FSS display when a CTR controller is also active on FSS
+
 # [2.0.0-alpha.7.8]
 
 ## Alpha Changes

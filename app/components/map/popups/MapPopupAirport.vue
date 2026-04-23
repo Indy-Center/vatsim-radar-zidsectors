@@ -157,7 +157,7 @@ const getPopupName = computed(() => {
     const featureProps = properties.value;
 
     if (isMapFeature('sector', featureProps)) {
-        if (featureProps.uir) {
+        if (featureProps.sectorType === 'uir') {
             return featureProps.name;
         }
 

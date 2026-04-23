@@ -6,7 +6,6 @@ import type VectorSource from 'ol/source/Vector.js';
 import type { Coordinate } from 'ol/coordinate.js';
 import { useMapStore } from '~/store/map';
 import type { NavDataFlightLevel, NavigraphNavDataShort } from '~/utils/server/navigraph/navdata/types';
-import { debounce } from '~/utils/shared';
 // @ts-expect-error JS-only lib
 import { magvar } from 'magvar';
 import { createMapFeature, getMapFeature } from '~/utils/map/entities';
@@ -146,7 +145,7 @@ const starWaypoints = shallowRef<Record<string, Coordinate>>({});
 const aircraftWaypoints = shallowRef<Record<string, Coordinate>>({});
 const setAnyWaypoint = ref(false);
 
-const debouncedUpdate = debounce(() => {
+const debouncedUpdate = useThrottleFn(() => {
     aircraftWaypoints.value = {};
     starWaypoints.value = {};
     setAnyWaypoint.value = false;
@@ -177,9 +176,9 @@ const debouncedUpdate = debounce(() => {
             }));
         }
     }
-}, 1000);
+}, 500, true);
 
-watch([dataStore.navigraphWaypoints, dataStore.navigraphProcedures], debouncedUpdate, {
+watch([dataStore.navigraphWaypoints, dataStore.navigraphProcedures, extent], debouncedUpdate, {
     immediate: true,
 });
 

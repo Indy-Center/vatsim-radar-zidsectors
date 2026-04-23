@@ -19,7 +19,6 @@ let vectorLayer: VectorLayer<any>;
 let vectorSource: VectorSource;
 
 let labelsLayer: VectorLayer<any>;
-let labelsSource: VectorSource;
 
 const map = inject<ShallowRef<Map | null>>('map')!;
 const dataStore = useDataStore();
@@ -57,13 +56,8 @@ onMounted(async () => {
         },
     });
 
-    labelsSource = new VectorSource<any>({
-        features: [],
-        wrapX: true,
-    });
-
     labelsLayer = new VectorLayer<any>({
-        source: labelsSource,
+        source: vectorSource,
         zIndex: FEATURES_Z_INDEX.SECTORS_LABEL,
         declutter: 'airports',
         properties: {
@@ -86,7 +80,6 @@ onMounted(async () => {
                 source: vectorSource,
                 layer: vectorLayer,
 
-                labelsSource,
                 labelsLayer,
 
                 firs: dataStore.sectorsList.value,
@@ -105,7 +98,6 @@ onBeforeUnmount(() => {
     globalMapEntities.sectors = null;
 
     labelsLayer?.dispose();
-    labelsSource?.clear();
 
     map.value?.removeLayer(vectorLayer);
     map.value?.removeLayer(labelsLayer);
