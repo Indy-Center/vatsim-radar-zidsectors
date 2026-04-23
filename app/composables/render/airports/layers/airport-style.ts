@@ -192,7 +192,7 @@ export function setAirportStyle(layer: VectorLayer) {
                 }
 
                 const width = 14;
-                const offsetX = (properties.index - ((properties.totalCount - 1) / 2)) * (width - 2);
+                const offsetX = (properties.index - ((properties.totalCount - 1) / 2)) * width;
 
                 const booked = properties.facility.atc.every(x => x.isBooking);
 
@@ -206,7 +206,7 @@ export function setAirportStyle(layer: VectorLayer) {
                                 text: 'A',
                                 offsetX: offsetX,
                                 offsetY: 10,
-                                padding: [2, 4, 0, 5],
+                                padding: [2, 4, 0, 7],
                                 fill: getCachedFill('transparent'),
                                 backgroundFill: getCachedFill(`rgba(${ getFacilityPositionColor(properties.facility.facility, true).join(',') }, ${ booked ? 0.5 : 1 })`),
                                 declutterMode: 'none',
@@ -217,9 +217,9 @@ export function setAirportStyle(layer: VectorLayer) {
                     else {
                         styleCache[styleCacheKey] = new Style({
                             image: new Icon({
-                                src: `/icons/atc/${ letter ?? 'A' }${ booked ? '-booked' : '' }.png`,
+                                src: `/icons/atc/${ letter ?? 'A' }${ booked ? '-booked' : '' }.png?v=1`,
                                 width: width + (properties.selected ? 2 : 0),
-                                displacement: [offsetX, -width],
+                                displacement: [offsetX - (properties.selected ? 1 : 0), -width],
                                 declutterMode: 'none',
                             }),
                             zIndex: properties.index + (properties.selected ? 5 : 0) + 100,
@@ -274,7 +274,7 @@ export function setAirportStyle(layer: VectorLayer) {
 
                     styleCache[cacheKey] = new Style({
                         image: new Icon({
-                            src: `/icons/atc/${ key }.png`,
+                            src: `/icons/atc/${ key }.png?v=1`,
                             height: 5,
                             displacement: [0, -0],
                             declutterMode: 'none',

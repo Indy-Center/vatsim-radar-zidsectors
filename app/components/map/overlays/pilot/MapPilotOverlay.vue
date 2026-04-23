@@ -514,7 +514,7 @@ watch(dataStore.airportsList, () => {
         });
     }
 
-    const controls = pilot.value.airport ? dataStore.airportsList.value[pilot.value.airport]?.atc : null;
+    const controls = pilot.value.airport ? dataStore.airportsList.value[pilot.value.airport]?.atc?.slice() : null;
 
     if (controls) {
         for (const atc of additionalATC) {

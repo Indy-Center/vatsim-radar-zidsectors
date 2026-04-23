@@ -167,8 +167,8 @@ export function setMapAirports({ source, airports, layer }: {
 
         const appr = airport.atc.filter(x => x.facility === facilitiesIds.APP && !dataStore.atcAddedDuringUpdate.value.has(x.callsign));
 
-        let isDuplicated = appr.every(x => x.duplicated);
-        let isBooked = appr.every(x => x.isBooking);
+        let isDuplicated = !!appr.length && appr.every(x => x.duplicated);
+        let isBooked = !!appr.length && appr.every(x => x.isBooking);
 
         // Counters
         if (airport.aircraft && mapStore.renderedAirports?.includes(airport.icao)) {
@@ -316,7 +316,7 @@ export function setMapAirports({ source, airports, layer }: {
                             type: 'airport-tracon',
                             icao: airport.icao,
                             iata: airport.icao,
-                            atc: controllers,
+                            atc: controllers.slice(),
                             isTWR,
                             isDuplicated,
                             isBooked,
@@ -371,7 +371,11 @@ export function setMapAirports({ source, airports, layer }: {
             }
 
             if (isMapFeature('airport-circle', properties) || isMapFeature('airport-circle-label', properties)) {
-                if (!airport.atc.some(x => x.facility === facilitiesIds.APP) || airport.features?.length || properties.atc.every(x => dataStore.atcAddedDuringUpdate.value.has(x.callsign))) {
+                if (
+                    !airport.atc.some(x => x.facility === facilitiesIds.APP) ||
+                    airport.features?.length ||
+                    properties.atc.every(x => dataStore.atcAddedDuringUpdate.value.has(x.callsign))
+                ) {
                     source.removeFeature(feature);
                     feature.dispose();
                 }

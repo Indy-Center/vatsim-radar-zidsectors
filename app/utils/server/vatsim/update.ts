@@ -219,6 +219,10 @@ async function updateVatsimExtendedPilots() {
                 }
             }
         }
+        else if (groundAirport) {
+            extendedPilot.airport = groundAirport.icao;
+            extendedPilot.status = extendedPilot.flight_plan?.arrival ? 'arrTaxi' : 'depTaxi';
+        }
 
         if (extendedPilot.flight_plan?.altitude) {
             if (Number(extendedPilot.flight_plan?.altitude) < 1000) extendedPilot.flight_plan.altitude = (Number(extendedPilot.flight_plan?.altitude) * 100).toString();
@@ -314,6 +318,7 @@ async function updateVatsimExtendedPilots() {
 
         origPilot.status = extendedPilot.status;
         origPilot.toGoDist = extendedPilot.toGoDist;
+        origPilot.airport = extendedPilot.airport;
         origPilot.depDist = extendedPilot.depDist;
         origPilot.arrival = extendedPilot.flight_plan?.arrival;
         origPilot.diverted = extendedPilot.flight_plan?.diverted;

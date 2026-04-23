@@ -22,7 +22,7 @@ export function getControllersForPosition(position: Coordinate, excludeCtr = fal
         ...airports?.getFeaturesAtCoordinate(position).map(x => {
             const properties = x.getProperties();
             if (isMapFeature('airport-circle', properties) || isMapFeature('airport-tracon', properties)) {
-                return properties.atc;
+                return properties.atc.slice();
             }
 
             return [];
@@ -30,7 +30,7 @@ export function getControllersForPosition(position: Coordinate, excludeCtr = fal
         ...sectors?.getFeaturesAtCoordinate(position).map(x => {
             const properties = x.getProperties();
             if (isMapFeature('sector', properties) || isMapFeature('sector-vatglasses', properties)) {
-                return properties.atc;
+                return properties.atc.slice();
             }
 
             return [];

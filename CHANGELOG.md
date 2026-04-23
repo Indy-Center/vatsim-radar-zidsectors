@@ -1,5 +1,11 @@
 # Changelog
 
+# [2.0.0-alpha.7.10]
+
+- Fixed side effect in pilot popup, result in random circles render
+- Fixed aircraft without FPLN on ground not displaying as ground
+- Redesigned ATC icons to better match new VR style
+
 # [2.0.0-alpha.7.9]
 
 - Attempt to fix holdings memory leak
