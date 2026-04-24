@@ -222,11 +222,6 @@ export async function updateAircraftTracksData(renderSettings: AircraftRenderSet
             turns = await $fetch<InfluxGeojson | null | undefined>(`/api/data/vatsim/pilot/${ aircraft.cid }/turns?start=`, {
                 timeout: 1000 * 5,
             }).catch(console.error) ?? null;
-
-            tracksFeatures.forEach(x => {
-                linesSource.removeFeature(x);
-                x.dispose();
-            });
         }
 
         if (turns?.features?.[0]?.features.length && turns?.flightPlanTime) {
@@ -244,7 +239,7 @@ export async function updateAircraftTracksData(renderSettings: AircraftRenderSet
 
             const toRemove = tracksFeatures.filter(x => {
                 // Clear all
-                if (firstUpdate) return true;
+                if (firstUpdate || !turns) return true;
                 const { lineType, timestamp } = x.getProperties();
 
                 return x !== arrLine && (lineType === 'aircraft' || timestamp === firstCollectionTimestamp);
