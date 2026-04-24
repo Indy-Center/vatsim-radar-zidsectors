@@ -274,6 +274,8 @@ watch([isEnabled, extent, level, starWaypoints, aircraftWaypoints, setAnyWaypoin
             continue;
         }
 
+        added.add(key);
+
         speed ??= 240;
         time ??= 0;
 
@@ -290,7 +292,6 @@ watch([isEnabled, extent, level, starWaypoints, aircraftWaypoints, setAnyWaypoin
                 dbType: 'holdings',
                 pointCoordinate: [longitude, latitude],
             }));
-            added.add(key);
         }
 
         if (existingWaypoint) {
