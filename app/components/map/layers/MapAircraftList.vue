@@ -3,7 +3,7 @@ import VectorSource from 'ol/source/Vector.js';
 import VectorLayer from 'ol/layer/Vector.js';
 import type { ShallowRef } from 'vue';
 import type { Map } from 'ol';
-import { useUpdateCallback } from '~/composables';
+import { logBench, useUpdateCallback } from '~/composables';
 import { useMapStore } from '~/store/map';
 import { useStore } from '~/store';
 import type { MapAircraftKeys } from '~/types/map';
@@ -95,7 +95,7 @@ const getShownPilots = computed(() => {
 
 const pilotsOverlays = computed(() => useMapStore().overlays.filter(x => x.type === 'pilot').map(x => +x.key));
 const airportOverlays = computed(() => useMapStore().overlays.filter(x => x.type === 'airport' && x.data.showTracks).map(x => x.key));
-const renderedPilots = computed(() => useMapStore().renderedPilots);
+const renderedPilots = computed(() => useMapStore().renderedPilots?.length);
 
 function setVisiblePilots() {
     if (!map.value) return;
@@ -312,7 +312,11 @@ const updateRelatedSettings = computed(() => JSON.stringify(store.mapSettings.tr
 
 let init = false;
 
-const visibleSet = useThrottleFn(setVisiblePilots, 1000);
+const visibleSet = useThrottleFn(() => {
+    const log = logBench('aircraftPrepare');
+    setVisiblePilots();
+    log();
+}, 1000, true);
 
 const debouncedUpdate = useThrottleFn(() => {
     if (!canRender.value) {
@@ -320,6 +324,7 @@ const debouncedUpdate = useThrottleFn(() => {
         linesSource.clear();
     }
     else {
+        const log = logBench('aircraftRender');
         setMapAircraft({
             source: vectorSource,
             layer: vectorLayer,
@@ -328,6 +333,7 @@ const debouncedUpdate = useThrottleFn(() => {
             shownPilots: getShownPilots.value,
             tracks: showTracks.value,
         });
+        log();
     }
 }, 500, true);
 

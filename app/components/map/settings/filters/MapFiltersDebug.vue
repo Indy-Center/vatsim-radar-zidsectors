@@ -292,6 +292,29 @@
         >
             Parse
         </ui-button>
+        <ui-block-title remove-margin>
+            Debug info
+        </ui-block-title>
+        <ul>
+            <li
+                v-for="(item, key) in store.bench"
+                :key
+            >
+                {{key}}: {{item}}ms
+            </li>
+            <li>
+                wsOpen: {{store.wsOpen}}
+            </li>
+            <li>
+                wsCallsign: {{store.wsCallsign}}
+            </li>
+            <li>
+                ownCallsign: {{ownFlight?.callsign}}
+            </li>
+            <li>
+                ownGroundCoordinate: {{dataStore.vatsim.selfCoordinate.value}}
+            </li>
+        </ul>
     </div>
 </template>
 
@@ -334,6 +357,7 @@ const flightPlan = reactive({
 });
 
 const isDebug = useIsDebug();
+const store = useStore();
 
 export interface VatsimControllerWithField extends VatsimController {
     default: boolean;

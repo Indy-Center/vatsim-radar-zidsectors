@@ -17,6 +17,7 @@ export function isTabVisible() {
 }
 
 export function initDataWebsocket(): () => void {
+    const store = useStore();
     const dataStore = useDataStore();
     clearInterval(interval);
 
@@ -25,11 +26,14 @@ export function initDataWebsocket(): () => void {
 
     websocket.addEventListener('open', () => {
         console.info('WebSocket was opened', new Date().toISOString());
+        store.wsOpen = true;
     });
 
     websocket.addEventListener('close', () => {
         console.info('WebSocket was closed', new Date().toISOString());
         wsRegistered = false;
+        store.wsOpen = false;
+        store.wsCallsign = '';
         dataStore.vatsim.selfCoordinate.value = null;
 
         clearInterval(interval);
@@ -60,6 +64,7 @@ export function initDataWebsocket(): () => void {
                     oldCallsign: wsRegistered,
                 }));
                 wsRegistered = ownFlight.value.callsign;
+                store.wsCallsign = ownFlight.value.callsign;
             }
 
             return;
@@ -95,6 +100,8 @@ export function initDataWebsocket(): () => void {
 
     return () => {
         wsRegistered = false;
+        store.wsOpen = false;
+        store.wsCallsign = '';
         dataStore.vatsim.selfCoordinate.value = null;
         websocket.close();
         clearInterval(interval);

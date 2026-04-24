@@ -4,6 +4,7 @@ import { updateAircraft } from '~/composables/render/update/aircraft';
 import { updateControllers } from '~/composables/render/update/atc';
 import { isVatGlassesActive } from '~/utils/data/vatglasses';
 import { useStore } from '~/store';
+import { logBench } from '~/composables';
 
 export interface DataUpdateContext { airports: Record<string, DataAirport>; sectors: Record<string, DataSector>; atcAdded: Set<string> | null; airportsAdded: Set<string> }
 
@@ -21,6 +22,8 @@ export async function updateControllersRender() {
         airportsAdded: new Set(),
     };
 
+    let log = logBench('updateAircraft');
+
     for (const airport in dataStore.airportsList.value) {
         airports[airport] = Object.assign({}, dataStore.airportsList.value[airport]);
         airports[airport].aircraft = {};
@@ -31,11 +34,16 @@ export async function updateControllersRender() {
 
     updateAircraft(context);
 
+    log();
+
     const isFirstRun = !!vgFirstRun;
 
     if (!dataStore.vatglassesCombiningInProgress.value) {
+        log = logBench('updateVG');
         vgFirstRun = await updateVATGlasses(context);
+        log();
     }
+    log = logBench('updateATC');
     await updateControllers(context);
 
     for (const airport in context.airports) {
@@ -50,6 +58,8 @@ export async function updateControllersRender() {
     if (context.atcAdded) {
         dataStore.atcAddedDuringUpdate.value = context.atcAdded;
     }
+
+    log();
 
     if (isFirstRun && !vgFirstRun) {
         updateControllersRender();

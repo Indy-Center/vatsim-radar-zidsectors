@@ -222,6 +222,11 @@ export async function updateAircraftTracksData(renderSettings: AircraftRenderSet
             turns = await $fetch<InfluxGeojson | null | undefined>(`/api/data/vatsim/pilot/${ aircraft.cid }/turns?start=`, {
                 timeout: 1000 * 5,
             }).catch(console.error) ?? null;
+
+            tracksFeatures.forEach(x => {
+                linesSource.removeFeature(x);
+                x.dispose();
+            });
         }
 
         if (turns?.features?.[0]?.features.length && turns?.flightPlanTime) {

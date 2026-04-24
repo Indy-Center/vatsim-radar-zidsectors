@@ -68,27 +68,27 @@ interface VisibleAirportsResult {
  */
 export type AirportListItem = DataAirport;
 
+export const simawareCache: Record<string, SimAwareDataFeature[]> = {};
+
 export const getRenderAirportsList = async ({ airports, visibleAirports }: {
     airports: MapAirportRender[];
     visibleAirports: DataAirport[];
 }): Promise<DataAirport[]> => {
     const dataStore = useDataStore();
 
-    const airportsMap: Record<string, DataAirport> = {};
-    const airportsByFeatureIds: Record<string, string> = {};
+    const cached = new Set<string>();
+
+    const featuresById: Record<string, AirportTraconFeature> = {};
     let airportsArr: DataAirport[] = [];
 
     for (const { airport } of airports) {
-        // if (!visible && !store.fullAirportsUpdate) continue;
-        airportsMap[airport.icao] = airport;
         airportsArr.push(airport);
     }
 
     function addFeatureToAirport(sector: SimAwareDataFeature, airport: DataAirport, controller: VatsimShortenedController) {
         const id = JSON.stringify(sector.properties);
 
-        let existingSector = airport.features?.find(x => x.id === id) ||
-            airportsMap[airportsByFeatureIds[id] ?? '']?.features?.find(x => x.id === id);
+        let existingSector = featuresById[id];
 
         if (existingSector) {
             if (!existingSector.controllers.some(x => x.callsign === controller.callsign)) {
@@ -102,7 +102,7 @@ export const getRenderAirportsList = async ({ airports, visibleAirports }: {
                 controllers: [controller],
             };
 
-            airportsByFeatureIds[id] = airport.icao;
+            featuresById[id] = existingSector;
 
             airport.features ??= [];
             airport.features.push(existingSector);
@@ -122,7 +122,13 @@ export const getRenderAirportsList = async ({ airports, visibleAirports }: {
 
         const callsigns = Array.from(new Set(arrAtc.map(x => x.callsign.split(callsignSplitRegex)[0])));
 
-        const traconFeatures = (await Promise.all(callsigns.map(callsign => dataStore.simaware(callsign)))).flat();
+        const traconFeatures: SimAwareDataFeature[] = [];
+
+        for (const callsign of callsigns) {
+            if (!simawareCache[callsign]) simawareCache[callsign] = await dataStore.simaware(callsign) ?? [];
+            traconFeatures.push(...simawareCache[callsign]);
+            cached.add(callsign);
+        }
 
         const backupFeatures: [controller: VatsimShortenedController, sector: SimAwareDataFeature][] = [];
 
@@ -180,6 +186,11 @@ export const getRenderAirportsList = async ({ airports, visibleAirports }: {
     const overlays = airportOverlays().value;
     airportsArr = airportsArr.filter(x => x.atc.length || x.aircraftCount || overlays.includes(x.icao));
     dataStore.vatsim.parsedAirports.value = Object.fromEntries(airportsArr.map(x => [x.icao, x]));
+
+    for (const key in simawareCache) {
+        if (!cached.has(key)) delete simawareCache[key];
+    }
+
     return airportsArr;
 };
 

@@ -8,7 +8,7 @@ import { useMapStore } from '~/store/map';
 import type { NavDataFlightLevel, NavigraphNavDataShort } from '~/utils/server/navigraph/navdata/types';
 // @ts-expect-error JS-only lib
 import { magvar } from 'magvar';
-import { createMapFeature, getMapFeature } from '~/utils/map/entities';
+import { createMapFeature, getMapFeature, isMapFeature } from '~/utils/map/entities';
 import { getNavigraphParsedData } from '~/composables/navigraph';
 
 defineOptions({
@@ -229,6 +229,8 @@ watch([isEnabled, extent, level, starWaypoints, aircraftWaypoints, setAnyWaypoin
         cleanup();
     }
 
+    const added = new Set<string>();
+
     for (let [key, [waypoint, course, time, length, turns, longitude, latitude, speed, type, minLat, maxLat]] of list) {
         const id = `holding-${ key }`;
         const textId = `${ id }-text`;
@@ -288,6 +290,7 @@ watch([isEnabled, extent, level, starWaypoints, aircraftWaypoints, setAnyWaypoin
                 dbType: 'holdings',
                 pointCoordinate: [longitude, latitude],
             }));
+            added.add(key);
         }
 
         if (existingWaypoint) {
@@ -309,6 +312,18 @@ watch([isEnabled, extent, level, starWaypoints, aircraftWaypoints, setAnyWaypoin
                 waypoint,
                 id: textId,
             }));
+        }
+    }
+
+    const features = source?.value.getFeatures() ?? [];
+
+    for (const feature of features) {
+        const properties = feature.getProperties();
+        if (isMapFeature('navigraph', properties)) {
+            if (properties.dbType === 'holdings' && !added.has(properties.key ?? '')) {
+                source?.value.removeFeature(feature);
+                feature.dispose();
+            }
         }
     }
 }, {

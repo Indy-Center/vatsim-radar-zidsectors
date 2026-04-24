@@ -435,3 +435,10 @@ export function globalComputed<T>(
 export const isIframe = computed(() => {
     return useRoute().query.iframe;
 });
+
+export function logBench(key: keyof ReturnType<typeof useStore>['bench']) {
+    const start = Date.now();
+    return () => {
+        useStore().bench[key] = Date.now() - start;
+    };
+}

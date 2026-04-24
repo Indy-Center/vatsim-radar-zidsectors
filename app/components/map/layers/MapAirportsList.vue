@@ -7,7 +7,7 @@ import { FEATURES_Z_INDEX } from '~/composables/render';
 import type { MapAirportRender } from '~/types/map';
 import { getRenderAirportsList, getInitialAirportsList } from '~/composables/render/airports';
 import type { AirportListItem } from '~/composables/render/airports';
-import { useUpdateCallback } from '~/composables';
+import { logBench, useUpdateCallback } from '~/composables';
 import { setMapAirports } from '~/composables/render/airports/layers/airport';
 import { globalMapEntities } from '~/utils/map/entities';
 import { setMapGatesRunways } from '~/composables/render/airports/layers/gates';
@@ -151,11 +151,17 @@ onMounted(() => {
     map.value.addLayer(navigraphLayer);
     map.value.addLayer(gatesLayer);
 
-    useUpdateCallback(['short', 'extent', dataStore.airportsList, updateRelatedSettings], async newValue => {
+    const updateAirports = useThrottleFn(async () => {
+        const log = logBench('airportsPrepare');
         const result = await getInitialAirportsList({ navigraphData, source: airportsSource, map: map.value! });
+        log();
         if (!result) return;
         airportsList.value = result.all;
         visibleAirports.value = result.visible;
+    }, 500, true);
+
+    useUpdateCallback(['short', 'extent', dataStore.airportsList, updateRelatedSettings], () => {
+        updateAirports();
     }, {
         immediate: true,
     });
@@ -163,13 +169,15 @@ onMounted(() => {
     const mapSettings = computed(() => store.mapSettings);
     const mapRender = computed(() => !mapStore.renderedAirports?.length);
 
-    watch([airportsList, mapSettings, mapRender], async () => {
+    const renderAirports = useThrottleFn(async () => {
         if (isHideMapObject('airports')) {
             airportsSource?.clear();
             navigraphSource?.clear();
             gatesSource?.clear();
             return;
         }
+
+        const log = logBench('airportsRender');
 
         airports.value = await getRenderAirportsList({ airports: airportsList.value, visibleAirports: visibleAirports.value });
 
@@ -192,6 +200,12 @@ onMounted(() => {
             source: navigraphSource,
             navigraphData: navigraphData.value,
         });
+
+        log();
+    }, 500, true);
+
+    watch([airportsList, mapSettings, mapRender], () => {
+        renderAirports();
     });
 });
 

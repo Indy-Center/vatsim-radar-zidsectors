@@ -773,7 +773,7 @@ watch(map, val => {
         condition: pointerMove,
         multi: true,
         style: null,
-        hitTolerance: 3,
+        hitTolerance: 5,
         filter,
     });
 
@@ -783,7 +783,7 @@ watch(map, val => {
 
     clickSelect = new Select({
         condition: singleClick,
-        hitTolerance: 10,
+        hitTolerance: 5,
         multi: true,
         style: null,
         toggleCondition: always,

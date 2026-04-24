@@ -10,6 +10,7 @@ import type { VatsimBooking } from '~/types/data/vatsim';
 import type { VatSpyData, VatSpyDataFeature } from '~/types/data/vatspy';
 import { setMapSectors } from '~/composables/render/sectors';
 import { globalMapEntities } from '~/utils/map/entities';
+import { logBench } from '~/composables';
 
 defineOptions({
     render: () => null,
@@ -76,6 +77,7 @@ onMounted(async () => {
             vectorSource.clear();
         }
         else {
+            const log = logBench('sectorsRender');
             setMapSectors({
                 source: vectorSource,
                 layer: vectorLayer,
@@ -84,6 +86,7 @@ onMounted(async () => {
 
                 firs: dataStore.sectorsList.value,
             });
+            log();
         }
     }, 500, true);
 

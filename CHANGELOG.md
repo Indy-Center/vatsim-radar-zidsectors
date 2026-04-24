@@ -1,12 +1,23 @@
 # Changelog
 
+# [2.0.0-alpha.7.11]
+
+## Alpha changes
+
+- Added Debug Info to Debug menu with render benchmarks and more info
+- Improved performance of ATC and VATGlasses update
+
 # [2.0.0-alpha.7.10]
+
+## Alpha changes
 
 - Fixed side effect in pilot popup, result in random circles render
 - Fixed aircraft without FPLN on ground not displaying as ground
 - Redesigned ATC icons to better match new VR style
 
 # [2.0.0-alpha.7.9]
+
+## Alpha changes
 
 - Attempt to fix holdings memory leak
 - Attempt to fix random circles appearing

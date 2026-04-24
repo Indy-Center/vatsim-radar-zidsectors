@@ -6,7 +6,7 @@ import type { VatsimShortenedController } from '~/types/data/vatsim';
 import type {
     VatglassesAirport,
     VatglassesAirspace,
-    VatglassesData,
+    VatglassesData, VatglassesPosition,
     VatglassesSector,
 } from '~/utils/server/storage';
 import { debugControllers, updateAirportAtisConfig } from '~/composables/render/update/utils';
@@ -168,11 +168,14 @@ function convertSectorToGeoJson(country: VatglassesData[string], sector: Vatglas
 export const runwaysState = useStorageLocal<Record<string, string>>('vg-runways', {});
 let firstRun = true;
 
+export const vgPositionsCache: Record<string, VatglassesPosition[]> = {};
+
 export async function updateVATGlasses(context: DataUpdateContext) {
     if (!isVatGlassesActive.value) return;
 
     const store = useStore();
     const dataStore = useDataStore();
+    const positionsPrefixes = new Set<string>();
 
     const { airports } = context;
     const { default: combinedWorker } = await import('~/composables/render/combination-worker.ts?worker');
@@ -221,7 +224,9 @@ export async function updateVATGlasses(context: DataUpdateContext) {
 
         const prefix = controller.callsign.split('_')[0];
 
-        const positions = await dataStore.vgData.position(prefix);
+        const positions = vgPositionsCache[prefix] ?? await dataStore.vgData.position(prefix);
+        positionsPrefixes.add(prefix);
+        vgPositionsCache[prefix] ??= positions ?? [];
 
         if (!positions?.length) continue;
 
@@ -234,6 +239,10 @@ export async function updateVATGlasses(context: DataUpdateContext) {
             foundControllers[position.countryId][position.id] ??= [];
             foundControllers[position.countryId][position.id].push(controller);
         }
+    }
+
+    for (const i in vgPositionsCache) {
+        if (!positionsPrefixes.has(i)) delete vgPositionsCache[i];
     }
 
     const vgAirports: Record<string, VatglassesAirport> = {};

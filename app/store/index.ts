@@ -124,6 +124,20 @@ export const useStore = defineStore('index', {
             updatesCheck: false,
             dataGet: false,
         } as VRInitStatus,
+
+        bench: {
+            updateAircraft: 0,
+            updateVG: 0,
+            updateATC: 0,
+            aircraftRender: 0,
+            aircraftPrepare: 0,
+            airportsRender: 0,
+            airportsPrepare: 0,
+            sectorsRender: 0,
+        },
+
+        wsOpen: false,
+        wsCallsign: '',
     }),
     getters: {
         bookings(): VatsimBooking[] {
