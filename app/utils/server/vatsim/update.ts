@@ -194,17 +194,19 @@ async function updateVatsimExtendedPilots() {
                 if (extendedPilot.toGoPercent < 0) extendedPilot.toGoPercent = 0;
                 extendedPilot.toGoTime = calculateArrivalTime(pilotCoords, arrCoords, extendedPilot.groundspeed).getTime();
 
-                if (extendedPilot.toGoDist < 100) {
-                    extendedPilot.airport = arr.icao;
-                    origPilot.airport = arr.icao;
-                }
-                else if (extendedPilot.depDist < 40) {
-                    extendedPilot.airport = dep.icao;
-                    origPilot.airport = dep.icao;
+                if (!extendedPilot.airport) {
+                    if (extendedPilot.toGoDist < 100) {
+                        extendedPilot.airport = arr.icao;
+                        origPilot.airport = arr.icao;
+                    }
+                    else if (extendedPilot.depDist < 40) {
+                        extendedPilot.airport = dep.icao;
+                        origPilot.airport = dep.icao;
+                    }
                 }
             }
 
-            if (extendedPilot.status !== 'arrGate' && extendedPilot.status !== 'arrTaxi') {
+            if (extendedPilot.status !== 'arrGate' && extendedPilot.status !== 'arrTaxi' && !groundAirport) {
                 if (extendedPilot.toGoDist && extendedPilot.toGoDist < 100) {
                     extendedPilot.airport = arr.icao;
                     if (!extendedPilot.status && extendedPilot.toGoDist < 40) {
