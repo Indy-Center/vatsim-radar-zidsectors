@@ -23,7 +23,6 @@ let labelsLayer: VectorLayer<any>;
 
 const map = inject<ShallowRef<Map | null>>('map')!;
 const dataStore = useDataStore();
-const mapStore = useMapStore();
 const store = useStore();
 
 const hideAtc = computed(() => isHideAtcType('firs'));
