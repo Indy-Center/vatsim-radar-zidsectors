@@ -10,6 +10,7 @@ import type { VatSpyData, VatSpyDataFeature } from '~/types/data/vatspy';
 import { setMapSectors } from '~/composables/render/sectors';
 import { globalMapEntities } from '~/utils/map/entities';
 import { logBench } from '~/composables';
+import VectorImageLayer from 'ol/layer/VectorImage';
 
 defineOptions({
     render: () => null,
@@ -42,7 +43,8 @@ onMounted(async () => {
 
     globalMapEntities.sectors = vectorSource;
 
-    vectorLayer = new VectorLayer<any>({
+    // @ts-expect-error wrong type
+    vectorLayer = new VectorImageLayer<any>({
         source: vectorSource,
         zIndex: FEATURES_Z_INDEX.SECTORS,
         declutter: 'airports',
