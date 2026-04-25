@@ -4,7 +4,6 @@ import VectorLayer from 'ol/layer/Vector';
 import { FEATURES_Z_INDEX } from '~/composables/render';
 import type { ShallowRef } from 'vue';
 import type { Map } from 'ol';
-import { useMapStore } from '~/store/map';
 import { useStore } from '~/store';
 import type { VatsimBooking } from '~/types/data/vatsim';
 import type { VatSpyData, VatSpyDataFeature } from '~/types/data/vatspy';

@@ -18,10 +18,11 @@
 
 <script setup lang="ts">
 import CloseIcon from '~/assets/icons/basic/close.svg?component';
+import type { UserMessageType } from '~/utils/shared';
 
 defineProps({
     cookieName: {
-        type: String,
+        type: String as PropType<UserMessageType>,
     },
     type: {
         type: String as PropType<'info' | 'error'>,

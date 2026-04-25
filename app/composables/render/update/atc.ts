@@ -43,27 +43,20 @@ async function filterFirsForList(list: string[] | undefined, callsign: string) {
     const callsignMiddle = callsignSplit.join('_');
 
     let maxStart = 0;
-    let foundExact = false;
+    const foundExact = false;
 
     for (const item of list) {
         const fir = firsMap[item];
-        let exact = false;
-        let foundExactHere = false;
+        const exact = false;
 
-        if (!fir || (fir.callsign ? !callsign.startsWith(fir.callsign) : !callsign.startsWith(fir.icao))) {
-            if (callsign.startsWith(fir?.icao)) {
-                exact = true;
-                if (!foundExact) foundExactHere = true;
-                foundExact = true;
-            }
-            else continue;
+        if (!fir || ((!fir.callsign || !callsign.startsWith(fir.callsign)) && !callsign.startsWith(fir.icao))) {
+            continue;
         }
 
-        let word = '';
+        const word = '';
 
         for (let i = 0; i < (fir.callsign ?? fir.icao).length; i++) {
-            word += (fir.callsign ?? fir.icao)[i];
-            if (!callsign.startsWith(word)) break;
+            if (!callsign.startsWith(fir.callsign ?? fir.icao) && !callsign.startsWith(fir.icao)) break;
         }
 
         let length = word.length;
@@ -71,10 +64,6 @@ async function filterFirsForList(list: string[] | undefined, callsign: string) {
         if ((fir.callsign || fir.icao) === callsignMiddle) length = 100;
 
         if (length < maxStart) {
-            if (foundExactHere) {
-                foundExact = false;
-            }
-
             continue;
         }
         maxStart = length;
@@ -82,10 +71,6 @@ async function filterFirsForList(list: string[] | undefined, callsign: string) {
         const features = dataStore.vatspy.value?.data.features[fir.boundary] ?? [];
 
         if (!features.length) {
-            if (foundExactHere) {
-                foundExact = false;
-            }
-
             continue;
         }
 
@@ -104,11 +89,11 @@ async function filterFirsForList(list: string[] | undefined, callsign: string) {
     return result.filter(x => (!foundExact || x.exact) && x.symbols === maxStart);
 }
 
-async function findFirsForCallsign(callsign: string, prefix?: string) {
-    const fir = await filterFirsForList(firsMapByCallsign[prefix || callsign], callsign);
-    if (fir.length) return fir;
-
-    return filterFirsForList(firsMapByIcao[prefix || callsign], callsign);
+function findFirsForCallsign(callsign: string, prefix?: string) {
+    return filterFirsForList([
+        ...firsMapByCallsign[prefix || callsign] ?? [],
+        ...firsMapByIcao[prefix || callsign] ?? [],
+    ], callsign);
 }
 
 function addSector(context: DataUpdateContext, sector: FirFindResult, controller: VatsimShortenedController | null, uir?: DataSector['uir']) {

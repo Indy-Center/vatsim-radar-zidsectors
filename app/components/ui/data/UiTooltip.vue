@@ -91,11 +91,11 @@ const props = defineProps({
         default: '12px',
     },
     titleTextType: {
-        type: String as PropType<UiTextTypes | null>,
+        type: String as PropType<UiTextTypes>,
         default: 'caption' satisfies UiTextTypes,
     },
     textType: {
-        type: String as PropType<UiTextTypes | null>,
+        type: String as PropType<UiTextTypes>,
         default: 'caption-light' satisfies UiTextTypes,
     },
 });

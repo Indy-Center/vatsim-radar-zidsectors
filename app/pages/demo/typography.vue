@@ -15,7 +15,7 @@
                 Test
             </ui-label>
             <ui-label
-                v-for="type in ['L', 'M', 'S', 'XS', null]"
+                v-for="type in ['L', 'M', 'S', 'XS', null] as any[]"
                 :key="type"
                 :headline-type="type"
             >

@@ -418,13 +418,13 @@
 
             <template #actions>
                 <ui-button
-                    type="secondary-flat"
+                    type="secondary"
                     @click="[resetUserFilter(), filterReset = false]"
                 >
                     Confirm reset
                 </ui-button>
                 <ui-button
-                    type="secondary-875"
+                    type="secondary"
                     @click="backupUserFilter()"
                 >
                     Backup data

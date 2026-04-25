@@ -3,7 +3,7 @@
         <ui-button
             v-if="Object.keys(store.mapSettings).length"
             size="S"
-            type="secondary-875"
+            type="secondary"
             @click="resetActive = true"
         >
             Reset to defaults
@@ -290,13 +290,13 @@
 
             <template #actions>
                 <ui-button
-                    type="secondary-flat"
+                    type="secondary"
                     @click="[resetUserMapSettings(), resetActive = false]"
                 >
                     Confirm reset
                 </ui-button>
                 <ui-button
-                    type="secondary-875"
+                    type="secondary"
                     @click="backupMapSettings()"
                 >
                     Backup data

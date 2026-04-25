@@ -1,5 +1,18 @@
 # Changelog
 
+# [2.0.0-alpha.8]
+
+## Alpha changes
+
+- Buttons have been redesigned. They can look weird there and there, please take a look at them!
+- Alerts have been redesigned. They can start to look weird too, or not fit to a specific place
+- Fixed some FIRs such as LPPO_CTR not displaying twice as they should
+
+## Redesign
+
+- Buttons have been redesigned for new VATSIM Radar simple look
+- Alerts/Notifications have been redesigned - each closed alert now also saves into your account, in case you are logged in
+
 # [2.0.0-alpha.7.12]
 
 - Fixed VATGlasses/CTR sectors not showed in ATC tab when on ground, and also not clickable
