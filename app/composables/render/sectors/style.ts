@@ -27,7 +27,7 @@ function getCachedFill(color: string) {
     return cachedFill;
 }
 
-function buildFirStyle({ color, settingsColor, hovered, label, secondLine, dashed, booking, labelCoordinate, labelType }: {
+function buildFirStyle({ color, settingsColor, hovered, label, secondLine, dashed, booking, labelCoordinate, labelType, transparent }: {
     color: ColorsListRgb;
     settingsColor?: SettingsColorType;
     dashed: boolean;
@@ -35,6 +35,7 @@ function buildFirStyle({ color, settingsColor, hovered, label, secondLine, dashe
     hovered: boolean;
     label?: string;
     secondLine?: string;
+    transparent?: boolean;
     labelCoordinate: Coordinate;
     labelType: boolean;
 }) {
@@ -45,7 +46,7 @@ function buildFirStyle({ color, settingsColor, hovered, label, secondLine, dashe
         userColorRaw = getSelectedColorFromSettings('centerBookings', true) || getCurrentThemeRgbColor('lightGray100').join(',');
     }
 
-    const key = String(color) + String(settingsColor) + String(booking) + String(dashed) + String(hovered) + String(!!label) + String(!!secondLine) + String(labelType);
+    const key = String(color) + String(settingsColor) + String(booking) + String(dashed) + String(hovered) + String(!!label) + String(!!secondLine) + String(labelType) + String(transparent);
 
     let cachedStyle = styleCache[key];
 
@@ -53,10 +54,16 @@ function buildFirStyle({ color, settingsColor, hovered, label, secondLine, dashe
         cachedStyle = [];
 
         if (labelType) {
-            const textFill = getCachedFill(`rgba(${ getSelectedColorFromSettings('centerText', true) || getCurrentThemeRgbColor('lightGray500').join(',') }, ${ booking ? 0.4 : 1 })`);
+            let textFill = getCachedFill(`rgba(${ getSelectedColorFromSettings('centerText', true) || getCurrentThemeRgbColor('lightGray500').join(',') }, ${ booking ? 0.4 : 1 })`);
             const textFillRaw = getSelectedColorFromSettings('centerText', true) || getCurrentThemeRgbColor('lightGray500').join(',');
-            const sectorBg = getCachedFill(`rgba(${ userColorRaw || getCurrentThemeRgbColor(color).join(',') }, ${ booking ? 0.4 : 1 })`);
-            const textBg = getCachedFill(getSelectedColorFromSettings('centerBg') ?? getCurrentThemeRgbColor('darkGray900'));
+            let sectorBg = getCachedFill(`rgba(${ userColorRaw || getCurrentThemeRgbColor(color).join(',') }, ${ booking ? 0.4 : 1 })`);
+            let textBg = getCachedFill(getSelectedColorFromSettings('centerBg') ?? getCurrentThemeRgbColor('darkGray900'));
+
+            if (transparent) {
+                textFill = getCachedFill('transparent');
+                sectorBg = getCachedFill('transparent');
+                textBg = getCachedFill('transparent');
+            }
 
             cachedStyle.push(new Style({
                 geometry: new Point(labelCoordinate),
@@ -69,7 +76,7 @@ function buildFirStyle({ color, settingsColor, hovered, label, secondLine, dashe
                         fill: hovered ? getCachedFill(radarColors.lightGray300Hex) : textFill,
                         backgroundFill: hovered ? sectorBg : textBg,
                         backgroundStroke: new Stroke({
-                            color: `rgba(${ textFillRaw }, ${ booking ? 0.1 : 0.2 })`,
+                            color: `rgba(${ textFillRaw }, ${ transparent ? 0 : booking ? 0.1 : 0.2 })`,
                             width: 1,
                             lineCap: 'round',
                             lineJoin: 'round',
@@ -81,8 +88,13 @@ function buildFirStyle({ color, settingsColor, hovered, label, secondLine, dashe
             }));
         }
         else {
-            const fillOpacity = hovered ? 0.2 : booking ? 0.1 : (userColorTransparency ?? 0.07);
-            const strokeOpacity = (hovered || booking) ? 0.6 : 0.5;
+            let fillOpacity = hovered ? 0.2 : booking ? 0.1 : (userColorTransparency ?? 0.07);
+            let strokeOpacity = (hovered || booking) ? 0.6 : 0.5;
+
+            if (transparent) {
+                fillOpacity = 0;
+                strokeOpacity = 0;
+            }
 
             cachedStyle.push(new Style({
                 fill: label
@@ -120,7 +132,7 @@ function buildFirStyle({ color, settingsColor, hovered, label, secondLine, dashe
     return cachedStyle;
 }
 
-const vatglassesStyle = ({ colour, max, positionId }: FeatureAirportSectorVGProperties): Style => {
+const vatglassesStyle = ({ colour, max, positionId }: FeatureAirportSectorVGProperties, transparent: boolean): Style => {
     let rgba: string;
 
     try {
@@ -130,7 +142,7 @@ const vatglassesStyle = ({ colour, max, positionId }: FeatureAirportSectorVGProp
         rgba = getSelectedColorFromSettings('firs', true) || getCurrentThemeRgbColor('success500').join(',');
     }
 
-    const key = `vatglasses-${ String(!!positionId) }`;
+    const key = `vatglasses-${ String(!!positionId) }-${ String(transparent) }`;
 
     if (!styleCache[key]) {
         styleCache[key] = new Style({
@@ -160,12 +172,12 @@ const vatglassesStyle = ({ colour, max, positionId }: FeatureAirportSectorVGProp
     }
 
     if (positionId) {
-        (styleCache[key] as Style).getText()!.setFill(getCachedFill(`rgba(${ rgba }, 1)`));
+        (styleCache[key] as Style).getText()!.setFill(getCachedFill(`rgba(${ rgba }, ${ transparent ? 0 : 1 })`));
         (styleCache[key] as Style).getText()!.setText(positionId);
     }
 
-    (styleCache[key] as Style).getFill()!.setColor(`rgba(${ rgba }, 0.2)`);
-    (styleCache[key] as Style).getStroke()!.setColor(`rgba(${ rgba }, 0.6)`);
+    (styleCache[key] as Style).getFill()!.setColor(`rgba(${ rgba }, ${ transparent ? 0 : 0.2 })`);
+    (styleCache[key] as Style).getStroke()!.setColor(`rgba(${ rgba }, ${ transparent ? 0 : 0.6 })`);
 
     return styleCache[key] as Style;
 };
@@ -177,11 +189,13 @@ export function setSectorStyle(layer: VectorLayer, labelType = false) {
 
     layer.setStyle(feature => {
         const properties = feature.getProperties();
+        const hideOnZoom = useMapStore().preciseZoom > 14;
 
         if (isMapFeature('sector', properties)) {
             return buildFirStyle({
                 color: properties.sectorType === 'empty' ? 'mapSectorBorder' : properties.sectorType === 'fir' ? 'green700' : 'purple600',
                 settingsColor: properties.sectorType === 'empty' ? undefined : properties.sectorType === 'fir' ? 'firs' : 'uirs',
+                transparent: hideOnZoom,
                 dashed: properties.duplicated,
                 booking: properties.booked,
                 hovered: !!properties.selected,
@@ -193,7 +207,7 @@ export function setSectorStyle(layer: VectorLayer, labelType = false) {
         }
 
         if (!labelType && isMapFeature('sector-vatglasses', properties)) {
-            return vatglassesStyle(properties);
+            return vatglassesStyle(properties, hideOnZoom);
         }
     });
 }

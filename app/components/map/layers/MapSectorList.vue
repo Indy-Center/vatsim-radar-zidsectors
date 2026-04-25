@@ -26,10 +26,6 @@ const dataStore = useDataStore();
 const mapStore = useMapStore();
 const store = useStore();
 
-const hideOnZoom = computed(() => {
-    return mapStore.zoom > 13;
-});
-
 const hideAtc = computed(() => isHideAtcType('firs'));
 
 export interface MapFir {
@@ -73,7 +69,7 @@ onMounted(async () => {
     const mapLevel = computed(() => store.localSettings.vatglassesLevel);
 
     const debouncedUpdate = useThrottleFn(async () => {
-        if (hideAtc.value || hideOnZoom.value) {
+        if (hideAtc.value) {
             vectorSource.clear();
         }
         else {

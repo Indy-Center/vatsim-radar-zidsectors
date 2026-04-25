@@ -1,5 +1,9 @@
 # Changelog
 
+# [2.0.0-alpha.7.12]
+
+- Fixed VATGlasses/CTR sectors not showed in ATC tab when on ground, and also not clickable
+
 # [2.0.0-alpha.7.11]
 
 ## Alpha changes
