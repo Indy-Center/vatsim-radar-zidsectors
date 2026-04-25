@@ -6,7 +6,7 @@ import type {
     VatsimLiveData, VatsimLiveDataShort, VatsimMandatoryData,
     VatsimShortenedData,
     VatsimSubDivision,
-    VatsimBooking, VatsimNattrak, VatsimTransceiverFrequency, VatsimAchievementList,
+    VatsimBooking, VatsimNattrak, VatsimTransceiverFrequency, VatsimAchievementList, VatsimStationAlias,
 } from '~/types/data/vatsim';
 import type { VatDataVersions } from '~/types/data';
 import type { MapAirport } from '~/types/map';
@@ -242,6 +242,7 @@ export interface RadarStorage {
         bookings: VatsimBooking[];
         tracks: VatsimNattrak[];
         achievements: VatsimAchievementList[];
+        aliases: Record<number, VatsimStationAlias>;
     };
     vatsimNotam: RadarNotam | null;
     vatsim: VatsimStorage;
@@ -280,6 +281,7 @@ export const radarStorage: RadarStorage = {
         bookings: [],
         tracks: [],
         achievements: [],
+        aliases: [],
     },
     vatsim: {
         data: null,

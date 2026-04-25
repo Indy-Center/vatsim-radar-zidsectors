@@ -12,7 +12,7 @@ import { initNavigraph } from '~/utils/backend/navigraph/db';
 import { updateSimAware } from '~/utils/backend/vatsim/simaware';
 import { updateVatglassesData } from '~/utils/backend/vatglasses';
 import { getRedis, getRedisData, getRedisSync, setRedisData } from '~/utils/backend/redis';
-import type { VatsimDivision, VatsimEvent, VatsimSubDivision } from '~/types/data/vatsim';
+import type { VatsimDivision, VatsimEvent, VatsimStationAlias, VatsimSubDivision } from '~/types/data/vatsim';
 import {
     updateAchievements,
     updateAirlines,
@@ -119,7 +119,28 @@ async function vatsimTasks() {
     await defineCronJob('15 * * * *', updateSectorsData).catch(console.error);
     await defineCronJob('15 0 * * *', updateAirlines).catch(console.error);
     await defineCronJob('*/10 * * * *', updateBookings).catch(console.error);
-    await defineCronJob('*/10 * * * *', updateNattrak).catch(console.error);
+    await defineCronJob('20 0 * * *', async () => {
+        if (!process.env.VATSIM_VOICE_USERNAME || !process.env.VATSIM_VOICE_PASSWORD) return;
+
+        const vatsimVoiceAuth = await $fetch<string>('https://voice1.vatsim.net/api/v1/auth', {
+            responseType: 'json',
+            method: 'POST',
+            body: {
+                username: process.env.VATSIM_VOICE_USERNAME,
+                password: process.env.VATSIM_VOICE_PASSWORD,
+            },
+        });
+
+        if (vatsimVoiceAuth) {
+            const aliases = await $fetch<VatsimStationAlias[]>('https://voice1.vatsim.net/api/v1/stations/aliased', {
+                headers: {
+                    Authorization: `Bearer ${ vatsimVoiceAuth }`,
+                },
+            });
+
+            radarStorage.vatsimStatic.aliases = Object.fromEntries(aliases.map(x => [x.frequency, x]));
+        }
+    }).catch(console.error);
     await defineCronJob('* * * * *', async () => {
         const status = await $fetch<VatsimStatus>('https://vatsim.instatus.com/summary.json');
         let notam: RadarNotam | undefined;
