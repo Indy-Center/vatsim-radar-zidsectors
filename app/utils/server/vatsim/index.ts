@@ -120,6 +120,10 @@ export function getTransceiverData(callsign: string, fullFrequency?: boolean): I
     const frequencies = transceiver.map(x => {
         let frequency = parseFloat((x.frequency / 1000000).toFixed(3)).toString();
 
+        if (radarStorage.vatsimStatic.aliases[x.frequency]) {
+            frequency = parseFloat((radarStorage.vatsimStatic.aliases[x.frequency].frequencyAlias / 1000000).toFixed(3)).toString();
+        }
+
         if (!frequency.includes('.')) {
             if (frequency.length < 3) {
                 for (let i = 0; i < 3 - frequency.length; i++) {

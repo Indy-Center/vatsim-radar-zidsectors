@@ -332,6 +332,13 @@ export interface VatsimSubDivision {
     parentdivision: string;
 }
 
+export interface VatsimStationAlias {
+    id: string;
+    name: string;
+    frequency: number;
+    frequencyAlias: number;
+}
+
 export enum VatsimEventType {
     Event = 'Event',
     Exam = 'Controller Examination',
