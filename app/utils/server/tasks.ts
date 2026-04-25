@@ -135,6 +135,7 @@ async function vatsimTasks() {
     await defineCronJob('15 * * * *', updateSectorsData).catch(console.error);
     await defineCronJob('15 0 * * *', updateAirlines).catch(console.error);
     await defineCronJob('*/10 * * * *', updateBookings).catch(console.error);
+    await defineCronJob('*/10 * * * *', updateNattrak).catch(console.error);
     await defineCronJob('20 0 * * *', async () => {
         if (!process.env.VATSIM_VOICE_USERNAME || !process.env.VATSIM_VOICE_PASSWORD) return;
 
