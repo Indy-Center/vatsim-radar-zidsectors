@@ -5,13 +5,15 @@
 ## Alpha changes
 
 - Buttons have been redesigned. They can look weird there and there, please take a look at them!
-- Alerts have been redesigned. They can start to look weird too, or not fit to a specific place
-- Fixed some FIRs such as LPPO_CTR not displaying twice as they should
+- Notifications have been redesigned. They can start to look weird too, or not fit to a specific place
+- Fixed some FIRs such as LPPO_CTR not displaying as they should
+- Improved sectors render performance by moving empty FIR boundaries to a performance-optimized layer variant
+- Fixed observers logon time
 
 ## Redesign
 
 - Buttons have been redesigned for new VATSIM Radar simple look
-- Alerts/Notifications have been redesigned - each closed alert now also saves into your account, in case you are logged in
+- Notifications have been redesigned - each closed notification now also saves into your account, in case you are logged in
 
 # [2.0.0-alpha.7.12]
 

@@ -145,7 +145,7 @@
             </template>
         </ui-select>
         <ui-notification
-            cookie-name="settings-emergency"
+            remember-message="SETTINGS_EMERGENCY"
             type="info"
         >
             Emergencies are aircraft squawking 7700 and 7600

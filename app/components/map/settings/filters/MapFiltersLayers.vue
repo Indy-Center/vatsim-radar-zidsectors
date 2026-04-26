@@ -117,7 +117,7 @@
             </ui-columns-display>
 
             <ui-notification
-                cookie-name="layers-tutorial"
+                remember-message="LAYERS_TUTORIAL"
                 type="info"
             >
                 Light and Detailed have worse performance than other layers
@@ -350,7 +350,7 @@
                 </ui-toggle>
             </div>
             <ui-notification
-                cookie-name="ifr-tutorial"
+                remember-message="IFR_TUTORIAL"
                 type="info"
             >
                 Affects airways and holdings

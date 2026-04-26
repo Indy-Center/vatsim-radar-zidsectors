@@ -303,7 +303,8 @@
 
             <ui-notification
                 v-if="!store.user?.hasCharts"
-                cookie-name="navigraph-connect-warning"
+                remember-message="NAVIGRAPH_CONNECT_WARNING"
+                type="error"
             >
                 Airports Layouts are available to Navigraph Unlimited subscribers only.<br>
 

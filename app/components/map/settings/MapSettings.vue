@@ -26,7 +26,7 @@
                     :class="{ 'filters_sections_section--selected': selectedFilter === 'map' }"
                     @click="selectFilter('map')"
                 >
-                    <ui-button :type="selectedFilter === 'map' ? 'primary' : 'secondary-black-black'">
+                    <ui-button :type="selectedFilter === 'map' ? 'primary' : 'secondary-black'">
                         <template #icon>
                             <map-layers-icon/>
                         </template>

@@ -14,10 +14,10 @@
         :style="{
             '--button-width': width ?? 'auto',
             '--icon-width': iconWidth,
-            '--primary-color': radarColors[primaryColor],
-            '--link-color': radarColors[linkColor],
-            '--hover-color': radarColors[hoverColor],
-            '--focus-color': radarColors[focusColor],
+            '--primary-color': primaryColor ? radarColors[primaryColor] : null,
+            '--link-color': linkColor ? radarColors[linkColor] : null,
+            '--hover-color': hoverColor ? radarColors[hoverColor] : null,
+            '--focus-color': focusColor ? radarColors[focusColor] : null,
         }"
         :target="target"
         v-bind="getAttrs"
@@ -185,6 +185,10 @@ const getAttrs = computed(() => {
         &:focus, &:active {
             background: var(--focus-color, $blue600);
         }
+    }
+
+    &--type-primary {
+        color: $typographyPrimaryOrig;
     }
 
     &_icon {

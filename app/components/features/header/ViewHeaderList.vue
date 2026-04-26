@@ -59,7 +59,10 @@
                     v-if="userAddActive"
                     class="__info-sections users_add"
                 >
-                    <ui-notification v-if="newUser.cid && store.lists.some(x => x.users.some(x => x.cid === newUser.cid))">
+                    <ui-notification
+                        v-if="newUser.cid && store.lists.some(x => x.users.some(x => x.cid === newUser.cid))"
+                        type="error"
+                    >
                         This user already exists in list {{ store.lists.find(x => x.users.some(x => x.cid === newUser.cid))?.name }}
                     </ui-notification>
                     <div class="__section-group">
@@ -107,7 +110,10 @@
                     </ui-button>
                 </ui-button-group>
 
-                <ui-notification v-if="duplicateName">
+                <ui-notification
+                    v-if="duplicateName"
+                    type="error"
+                >
                     A list with this name already exists
                 </ui-notification>
 
@@ -141,7 +147,7 @@
 
         <ui-notification
             v-if="list.users.length"
-            cookie-name="friends-click-tutorial"
+            remember-message="FRIENDS_CLICK_TUTORIAL"
             type="info"
         >
             Want to modify favorite user?<br> Just click on user's card!
@@ -218,7 +224,7 @@
                     Import as file
                 </ui-block-title>
                 <ui-notification
-                    cookie-name="vatspy-import"
+                    remember-message="VATSPY_IMPORT"
                     type="info"
                 >
                     <details>

@@ -14,7 +14,7 @@
 
         <template v-if="tab === 'filter'">
             <ui-notification
-                cookie-name="filters-input"
+                remember-message="FILTERS_INPUT"
                 type="info"
             >
                 Press enter in search field to add your value to list
@@ -189,7 +189,7 @@
                     Routes
                 </ui-combo-box>
                 <ui-notification
-                    cookie-name="filters-routes-format"
+                    remember-message="FILTERS_ROUTES_FORMAT"
                     type="info"
                 >
                     Format: ICAO-ICAO

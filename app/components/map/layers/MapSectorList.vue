@@ -17,7 +17,9 @@ defineOptions({
 });
 
 let vectorLayer: VectorLayer<any>;
+let vectorImageLayer: VectorImageLayer<any>;
 let vectorSource: VectorSource;
+let vectorImageSource: VectorSource;
 
 let labelsLayer: VectorLayer<any>;
 
@@ -41,15 +43,28 @@ onMounted(async () => {
         wrapX: true,
     });
 
+    vectorImageSource = new VectorSource<any>({
+        features: [],
+        wrapX: true,
+    });
+
     globalMapEntities.sectors = vectorSource;
 
-    // @ts-expect-error wrong type
-    vectorLayer = new VectorImageLayer<any>({
+    vectorLayer = new VectorLayer<any>({
         source: vectorSource,
         zIndex: FEATURES_Z_INDEX.SECTORS,
         declutter: 'airports',
         properties: {
             type: 'sectors-list',
+        },
+    });
+
+    vectorImageLayer = new VectorImageLayer<any>({
+        source: vectorImageSource,
+        zIndex: FEATURES_Z_INDEX.SECTORS_EMPTY,
+        declutter: false,
+        properties: {
+            type: 'sectors-empty',
         },
     });
 
@@ -63,6 +78,7 @@ onMounted(async () => {
     });
 
     map.value.addLayer(vectorLayer);
+    map.value.addLayer(vectorImageLayer);
     map.value.addLayer(labelsLayer);
 
     const mapSettings = computed(() => store.mapSettings);
@@ -77,6 +93,9 @@ onMounted(async () => {
             setMapSectors({
                 source: vectorSource,
                 layer: vectorLayer,
+
+                emptyLayer: vectorImageLayer,
+                emptySource: vectorImageSource,
 
                 labelsLayer,
 
@@ -94,11 +113,14 @@ onMounted(async () => {
 onBeforeUnmount(() => {
     vectorLayer?.dispose();
     vectorSource?.clear();
+    vectorImageSource?.clear();
     globalMapEntities.sectors = null;
 
     labelsLayer?.dispose();
+    vectorImageLayer?.dispose();
 
     map.value?.removeLayer(vectorLayer);
     map.value?.removeLayer(labelsLayer);
+    map.value?.removeLayer(vectorImageLayer);
 });
 </script>

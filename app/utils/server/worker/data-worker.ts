@@ -429,7 +429,6 @@ defineCronJob('* * * * * *', async () => {
                 visual_range: true,
                 flight_plan: true,
                 last_updated: true,
-                logon_time: true,
             },
         });
 
@@ -638,11 +637,18 @@ defineCronJob('* * * * * *', async () => {
         }
 
         for (const atc of radarStorage.vatsim.regularData!.observers) {
+            if (atc.frequencies?.length) {
+                for (const frequency of atc.frequencies) {
+                    if (!shortDatafeed.map.frequencies.includes(frequency)) shortDatafeed.map.frequencies.push(frequency);
+                }
+            }
+
             shortDatafeed.observers.push({
                 ci: atc.cid,
                 n: atc.name,
                 ca: atc.callsign,
                 frq: atc.frequencies?.map(x => shortDatafeed.map.frequencies.indexOf(x)),
+                lg: atc.logon_time,
             });
         }
 

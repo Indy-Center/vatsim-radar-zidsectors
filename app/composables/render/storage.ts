@@ -406,6 +406,7 @@ export function setVatsimDataStore(_vatsimData: VatsimLiveCompactDataShort) {
             name: atc.n,
             callsign: atc.ca,
             frequencies: atc.frq?.map(x => _vatsimData.map.frequencies[x]),
+            logon_time: atc.lg,
         });
     }
 

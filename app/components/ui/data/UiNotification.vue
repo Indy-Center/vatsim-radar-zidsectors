@@ -1,6 +1,6 @@
 <template>
     <div
-        v-if="!cookieName || !notifications[cookieName]"
+        v-if="!rememberMessage || !notifications[rememberMessage]"
         class="warning"
         :class="[`warning--type-${ type }`]"
     >
@@ -9,9 +9,9 @@
         </div>
 
         <close-icon
-            v-if="cookieName"
+            v-if="rememberMessage"
             class="warning_icon"
-            @click="notifications[cookieName!] = true"
+            @click="notifications[rememberMessage!] = true"
         />
     </div>
 </template>
@@ -21,16 +21,18 @@ import CloseIcon from '~/assets/icons/basic/close.svg?component';
 import type { UserMessageType } from '~/utils/shared';
 
 defineProps({
-    cookieName: {
-        type: String as PropType<UserMessageType>,
+    rememberMessage: {
+        type: String as PropType<UserMessageType | keyof typeof UserMessageType>,
     },
     type: {
         type: String as PropType<'info' | 'error'>,
-        default: 'error',
+        required: true,
     },
 });
 
 defineSlots<{ default: () => any }>();
+
+const store = useStore();
 
 const notifications = useCookie<Record<string, boolean>>('notifications', {
     path: '/',
@@ -38,7 +40,8 @@ const notifications = useCookie<Record<string, boolean>>('notifications', {
     secure: true,
     maxAge: 60 * 60 * 24 * 360,
 });
-if (!notifications.value) notifications.value = {};
+
+if (!notifications.value || store.user) notifications.value = {};
 </script>
 
 <style scoped lang="scss">
