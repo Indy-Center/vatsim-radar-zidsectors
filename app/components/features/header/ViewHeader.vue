@@ -315,7 +315,7 @@ const mobileMenuOpened = ref(false);
 
     &_left {
         display: flex;
-        gap: 32px;
+        gap: 40px;
         align-items: center;
         margin-right: 32px;
     }

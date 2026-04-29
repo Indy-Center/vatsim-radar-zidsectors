@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import type { FullUser } from '~/utils/server/user';
+import type { FullUser, UserMessage } from '~/utils/server/user';
 import type { MapAircraftMode, UserLocalSettings } from '~/types/map';
 
 import type { ThemesList } from '~/utils/colors';
@@ -20,9 +20,11 @@ import type {
 import type { UserFilter, UserFilterPreset } from '~/utils/server/handlers/filters';
 import type { IEngine } from 'ua-parser-js';
 import { isFetchError } from '~/utils/shared';
+import type { UserMessageType } from '~/utils/shared';
 import type { UserBookmarkPreset } from '~/utils/server/handlers/bookmarks';
 import { useIsDebug } from '~/composables';
 import { clientDB } from '~/composables/render/idb';
+import type { PartialRecord } from '~/types';
 
 export interface SiteConfig {
     hideSectors?: boolean;
@@ -260,6 +262,10 @@ export const useStore = defineStore('index', {
                 ...user,
                 listName: x.name,
             })));
+        },
+        userMessages(): PartialRecord<UserMessageType, UserMessage> {
+            if (!this.user) return {};
+            return Object.fromEntries(this.user.messages.map(x => ([x.message, x])));
         },
     },
     actions: {

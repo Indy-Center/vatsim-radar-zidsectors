@@ -1,31 +1,27 @@
 <template>
-    <div
-        v-if="!rememberMessage || !notifications[rememberMessage]"
-        class="warning"
-        :class="[`warning--type-${ type }`]"
+    <ui-snackbar
+        v-if="!rememberMessage || !saw"
+        :model-value="rememberMessage ? !saw : undefined"
+        size="S"
+        :type
+        @update:modelValue="() => saveMessage()"
     >
-        <div class="warning_text">
-            <slot/>
-        </div>
-
-        <close-icon
-            v-if="rememberMessage"
-            class="warning_icon"
-            @click="notifications[rememberMessage!] = true"
-        />
-    </div>
+        <slot/>
+    </ui-snackbar>
 </template>
 
 <script setup lang="ts">
-import CloseIcon from '~/assets/icons/basic/close.svg?component';
 import type { UserMessageType } from '~/utils/shared';
+import type { ShortUser } from '~/utils/server/user';
+import UiSnackbar from '~/components/ui/data/UiSnackbar.vue';
+import type { SnackbarType } from '~/components/ui/data/UiSnackbar.vue';
 
-defineProps({
+const props = defineProps({
     rememberMessage: {
         type: String as PropType<UserMessageType | keyof typeof UserMessageType>,
     },
     type: {
-        type: String as PropType<'info' | 'error'>,
+        type: String as PropType<SnackbarType>,
         required: true,
     },
 });
@@ -42,42 +38,27 @@ const notifications = useCookie<Record<string, boolean>>('notifications', {
 });
 
 if (!notifications.value || store.user) notifications.value = {};
-</script>
 
-<style scoped lang="scss">
-.warning {
-    display: flex;
-    gap: 8px;
-    align-items: center;
+const saw = computed<boolean>(() => {
+    if (!props.rememberMessage) return false;
 
-    max-width: 100%;
-    padding: 4px 4px 4px 8px;
-    border-left: 2px solid $error500;
+    return store.user ? !!store.userMessages[props.rememberMessage] : !!notifications.value[props.rememberMessage];
+});
 
-    font-size: 12px;
-    font-weight: 600;
+async function saveMessage() {
+    if (!props.rememberMessage) return;
 
-    &--type-info {
-        border-color: $primary500;
+    if (store.user) {
+        store.user.messages = (await $fetch<ShortUser>('/api/user/messages', {
+            method: 'POST',
+            body: {
+                message: props.rememberMessage,
+            },
+        })).messages;
     }
-
-    &_text {
-        flex-grow: 1;
-    }
-
-    &_icon {
-        cursor: pointer;
-        align-self: flex-start;
-        width: 12px;
-        min-width: 12px;
-
-        @include hover {
-            transition: 0.3s;
-
-            &:hover {
-                color: $primary500;
-            }
-        }
+    else {
+        notifications.value[props.rememberMessage] = true;
+        triggerRef(notifications);
     }
 }
-</style>
+</script>

@@ -95,7 +95,7 @@ const model = defineModel({ type: Boolean, default: null });
         -webkit-box-orient: vertical;
         -webkit-line-clamp: 2;
 
-        max-height: 50px;
+        max-height: 54px;
     }
 
     &_close {

@@ -13,7 +13,9 @@
 ## Redesign
 
 - Buttons have been redesigned for new VATSIM Radar simple look
-- Notifications have been redesigned - each closed notification now also saves into your account, in case you are logged in
+- Notifications have been redesigned - each closed notification now also saves into your account, in case you are logged in. You can now also reset all saw notifications in settings
+- Redesigned header
+- Redesigned tabs
 
 # [2.0.0-alpha.7.12]
 
