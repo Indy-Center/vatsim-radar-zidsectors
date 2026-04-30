@@ -433,8 +433,8 @@ export const duplicatingSettings = [
     {
         regex: /^(CMH|DAY)(_\w{0,3})?_(APP)$/,
         mapping: {
-            CMH East: 'CMH_N_APP',
-            CMH West: 'DAY_M_APP',
+            'CMH East': 'CMH_N_APP',
+            'CMH West': 'DAY_M_APP',
         },
     }
 
